@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="primary" type="color">#2196f3</item>
+    <item name="secondary" type="color">#64b5f6</item>
+    <item name="fore_background" type="color">#e3f2fd</item>
+    <item name="clicked_button" type="color">#0d47a1</item>
+</resources>

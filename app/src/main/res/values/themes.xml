@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- the theme applied to the application or activity -->
+
+
+    <style name="SpartanTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:actionBarStyle"   tools:ignore="NewApi">@style/SpartanActionBar</item>
+        <item name="actionBarStyle">@style/SpartanActionBar</item>
+
+    </style>
+
+    <style name = "NoActionBar" parent = "SpartanTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="SpartanActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background"  tools:ignore="NewApi">@color/primary</item>
+        <item name="background">@color/primary</item>
+        <item name="titleTextStyle">@style/SpartanTitleTextStyle</item>
+        <item name="android:homeAsUpIndicator">@mipmap/ic_drawer</item>
+    </style>
+
+    <style name="SpartanTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/primary_text_default_material_dark</item>
+    </style>
+
+</resources>
