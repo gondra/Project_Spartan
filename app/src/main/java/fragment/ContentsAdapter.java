@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,7 +20,7 @@ import easset.naviapp.R;
 /**
  * Created by easset-01 on 6/18/2015.
  */
-public class DynamicFormAdapter extends BaseAdapter {
+public class ContentsAdapter extends BaseAdapter {
     private Context mContext;
     private String id;
     private String type;
@@ -48,7 +47,7 @@ public class DynamicFormAdapter extends BaseAdapter {
         TextView fieldTypeTextView;
     }
 
-    public DynamicFormAdapter(Context mContext, String id, String type, String name, String value, String required, String fieldType){
+    public ContentsAdapter(Context mContext, String id, String type, String name, String value, String required, String fieldType){
         this.mContext = mContext;
         this.id = id;
         this.type = type;
@@ -58,7 +57,7 @@ public class DynamicFormAdapter extends BaseAdapter {
         this.fieldType = fieldType;
     }
 
-    public  DynamicFormAdapter(Context mContext, Vector<JSONObject> fieldsVector){
+    public ContentsAdapter(Context mContext, Vector<JSONObject> fieldsVector){
         this.fieldsVector = fieldsVector;
         this.mContext = mContext;
         this.ids = new ArrayList();
@@ -112,7 +111,7 @@ public class DynamicFormAdapter extends BaseAdapter {
         if(convertView==null){
             // inflate the layout
             LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-            convertView = inflater.inflate(R.layout.fragment_listrow, parent, false);
+            convertView = inflater.inflate(R.layout.list_row_contents, parent, false);
 
             // well set up the ViewHolder
             viewHolder = new ViewHolderItem();

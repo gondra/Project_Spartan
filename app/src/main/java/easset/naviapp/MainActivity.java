@@ -1,6 +1,5 @@
 package easset.naviapp;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -29,12 +28,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import fragment.HomeFragment;
-import fragment.MainFragment;
-import fragment.ViewFragment;
+import fragment.ContentsFragment;
+import fragment.RecordFragment;
 
 
-public class MainActivity extends ActionBarActivity implements MainFragment.OnMainFragmentInteractionListener{
+public class MainActivity extends ActionBarActivity implements RecordFragment.OnMainFragmentInteractionListener{
     DrawerLayout mDrawerLayout;
     ListView mListView;
     ActionBarDrawerToggle mBarDrawerToggle;
@@ -59,7 +57,7 @@ public class MainActivity extends ActionBarActivity implements MainFragment.OnMa
         getSupportActionBar().setHomeButtonEnabled(true);
         logOnData = new ArrayList<>();
 
-        //get menu list to generate list menu
+        /**get menu list to generate list menu*/
         logOnData = initialMenu(getApplication(), userName);
 
         if(!logOnData.isEmpty()){
@@ -68,7 +66,7 @@ public class MainActivity extends ActionBarActivity implements MainFragment.OnMa
             try{
                 userDataJSON = new JSONObject(userData.get("JSON"));
 
-                //Convert menu to  ArrayAdapter
+                /**Convert menu to  ArrayAdapter*/
                 menuListJSON = userDataJSON.getJSONObject("Modules");
                 ArrayList<String> tempMenuList = new ArrayList<>();
                 for(int i=1;i<=menuListJSON.length();i++){
@@ -78,14 +76,14 @@ public class MainActivity extends ActionBarActivity implements MainFragment.OnMa
                 }
                 menuListText = tempMenuList;
 
-                //Get content
+                /**Get content*/
                 contentJSON = userDataJSON.getJSONObject("Secondary contents");
 
             }catch(JSONException e){
                 Log.e("JSON convert error" ,e.getMessage());
             }
 
-        }else{ //no data or first login
+        }else{ /**no data or first login*/
             String[] tmpMenu = new String[]{"Home","View","Edit","About"};
             menuListText = new ArrayList<>(Arrays.asList(tmpMenu));
         }
@@ -93,13 +91,13 @@ public class MainActivity extends ActionBarActivity implements MainFragment.OnMa
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mListView = (ListView)findViewById(R.id.left_drawer);
-        mListView.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.drawer_list_item, menuListText));
+        mListView.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.list_row_menu, menuListText));
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getApplicationContext(),""+position,Toast.LENGTH_SHORT).show();
-                //select menu on the left sidebar
+                /**select menu on the left sidebar*/
                 selectMenu(contentJSON, position, mListView);
             }
         });
@@ -113,14 +111,14 @@ public class MainActivity extends ActionBarActivity implements MainFragment.OnMa
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 getSupportActionBar().setTitle("Spartan Navigation!");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                invalidateOptionsMenu(); /** creates call to onPrepareOptionsMenu()*/
             }
 
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
                 getSupportActionBar().setTitle(getTitle().toString());
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                invalidateOptionsMenu(); /** creates call to onPrepareOptionsMenu()*/
             }
         };
 
@@ -129,27 +127,27 @@ public class MainActivity extends ActionBarActivity implements MainFragment.OnMa
 
     }
 
-    //Navigation drawer's controller
+    /**Navigation drawer's controller*/
     private void selectMenu(JSONObject contentJSON, int position, ListView mListView){
-        Fragment fragment = new MainFragment();
+        Fragment fragment = new RecordFragment();
         Bundle args = new Bundle();
 
-        //Store value for passing to fragment
+        /**Store value for passing to fragment*/
         TextView itemView = (TextView)getViewByPosition(position, mListView);
-        args.putString("content_json_str",contentJSON.toString());
+        //args.putString("content_json_str",contentJSON.toString());
         args.putString("chosen_menu", (String) itemView.getText());
 
 
-        //Set argument to fragment
+        /**Set argument to fragment*/
         fragment.setArguments(args);
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
-        //Open fragment instead of previous view
+        /**Open fragment instead of previous view*/
         transaction.replace(R.id.content_frame, fragment).commit();
 
-        // update selected item and title, then close the drawer
+        /** update selected item and title, then close the drawer*/
         mListView.setItemChecked(position, true);
         mDrawerLayout.closeDrawer(mListView);
     }
