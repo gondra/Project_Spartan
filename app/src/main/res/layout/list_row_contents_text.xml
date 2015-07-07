@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="4"
+    >
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Label : "
+        android:minHeight="64dp"
+        android:id="@+id/label_text"
+        android:layout_weight="1"
+        android:textStyle="bold"
+        android:gravity="center_vertical|end"/>
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Type"
+        android:id="@+id/value_edit"
+        android:layout_weight="3"
+        android:gravity="center_vertical|start"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="8dp" />
+
+
+
+
+</LinearLayout>

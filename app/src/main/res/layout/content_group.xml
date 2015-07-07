@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="4"
+    >
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Label : "
+        android:minHeight="64dp"
+        android:id="@+id/label_text"
+        android:layout_weight="1"
+        android:textStyle="bold"
+        android:gravity="center_vertical|end"/>
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Type"
+        android:id="@+id/value_edit"
+        android:layout_weight="3"
+        android:textStyle="bold"
+        android:gravity="center_vertical|start"
+        android:focusable="true"
+        android:maxLines="1"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="8dp" />
+
+    <Spinner
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="3"
+        android:id="@+id/pick_list"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp" />
+
+
+</LinearLayout>

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -27,12 +28,18 @@ public class ContentAdapter extends BaseAdapter {
     private Context mContext;
     private JSONArray field;
     private static final String PICK_LIST = "picklist";
+    private static final int TYPE_TEXT = 0;
+    private static final int TYPE_PICK_LIST = 1;
+    private static final int TYPE_MAX_COUNT = TYPE_PICK_LIST + 1;
+    LayoutInflater inflater;
+
     /**Attribute of each list*/
     private ArrayList<String> name, type, format, label, labelTH, required, updateable, defaultValue ;
     private ArrayList<Integer> length;
     private ArrayList<ArrayList<String>> listValue;
-    
+    private String[] value;
     public ContentAdapter(Context mContext, JSONArray field){
+        inflater = ((Activity) mContext).getLayoutInflater();
         this.mContext = mContext;
         this.field = field;
         this.name = new ArrayList();
@@ -48,6 +55,11 @@ public class ContentAdapter extends BaseAdapter {
         
         /**Set attribute's value*/
         setValue(field);
+    }
+
+    public ContentAdapter(Context mContext, String[] field){
+        this.mContext = mContext;
+        this.value = new String[]{"1","2","3"};
     }
     
     private void setValue(JSONArray field){
@@ -83,14 +95,15 @@ public class ContentAdapter extends BaseAdapter {
 
     private static class ViewHolderItem {
         TextView labelTextView;
-        EditText valueEditView;
+        TextView valueEditView;
         Spinner pickListView;
     }
 
 
     @Override
     public int getCount() {
-        return field.length();
+        int size = field.length();
+        return size;
     }
 
     @Override
@@ -104,17 +117,61 @@ public class ContentAdapter extends BaseAdapter {
     }
 
     @Override
+    public int getViewTypeCount() {
+        return TYPE_MAX_COUNT;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return getType(position).equalsIgnoreCase(PICK_LIST) ? TYPE_PICK_LIST : TYPE_TEXT;
+    }
+
+    private int checkpickListType(int position){
+        int valid = 0;
+        if(PICK_LIST.equalsIgnoreCase(getType(position))){
+            valid = 1 ;
+        }
+        return valid;
+    }
+
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolderItem viewHolder;
-
+        int viewType = getItemViewType(position);
         if (convertView == null) {
             // inflate the layout
-            LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-
-            convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
+            /*
+            if(checkpickListType(position) == 0) {
+                convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
+            }else if(checkpickListType(position) == 1){
+                convertView = inflater.inflate(R.layout.list_row_contents_pick, parent, false);
+            }else{
+                convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
+            }
 
             viewHolder = new ViewHolderItem();
             viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
+            if(checkpickListType(position) == 0) {
+                viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
+            }else if(checkpickListType(position) == 1){
+                viewHolder.pickListView = (Spinner) convertView.findViewById(R.id.pick_list);
+            }else{
+                viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
+            }*/
+
+            viewHolder = new ViewHolderItem();
+            switch (viewType) {
+                case TYPE_TEXT:
+                    convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
+                    viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
+                    viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
+                    break;
+                case TYPE_PICK_LIST:
+                    convertView = inflater.inflate(R.layout.list_row_contents_pick, parent, false);
+                    viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
+                    viewHolder.pickListView = (Spinner) convertView.findViewById(R.id.pick_list);
+                    break;
+            }
 
             // store the holder with the view.
             convertView.setTag(viewHolder);
@@ -122,7 +179,17 @@ public class ContentAdapter extends BaseAdapter {
             viewHolder = (ViewHolderItem) convertView.getTag();
         }
 
-        //viewHolder.labelTextView.setText(this.label.get(position));
+        switch (viewType) {
+            case TYPE_TEXT:
+                viewHolder.labelTextView.setText(this.label.get(position));
+                viewHolder.valueEditView.setText(this.defaultValue.get(position));;
+                break;
+            case TYPE_PICK_LIST:
+                viewHolder.labelTextView.setText(this.label.get(position));
+                ArrayAdapter<String> dataAdapter = new ArrayAdapter(convertView.getContext(),R.layout.item_pick_list, this.listValue.get(position));
+                viewHolder.pickListView.setAdapter(dataAdapter);
+                break;
+        }
 
         return convertView;
     }

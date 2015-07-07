@@ -11,6 +11,10 @@ import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Vector;
 
 import easset.naviapp.R;
 
@@ -19,7 +23,10 @@ import easset.naviapp.R;
  */
 public class RecordAdapter extends BaseAdapter {
     Context mContext;
-    JSONArray recordVector;
+    Vector<JSONObject> recordVector;
+    private ArrayList<String> ids;
+    private ArrayList<String> names;
+    private ArrayList<String> description;
 
     private static class ViewHolderItem {
         TextView idTextView;
@@ -28,14 +35,34 @@ public class RecordAdapter extends BaseAdapter {
 
     }
 
-    public RecordAdapter(Context mContext, JSONArray recordVector){
+    public RecordAdapter(Context mContext, Vector<JSONObject> recordVector){
         this.mContext = mContext;
         this.recordVector = recordVector;
+        this.ids = new ArrayList<>();
+        this.names = new ArrayList<>();
+        this.description = new ArrayList<>();
+        populateDataFromJSON(recordVector);
+    }
+
+    private void populateDataFromJSON(Vector<JSONObject> fieldsVector){
+        try{
+            for(int i=0;i<fieldsVector.size();i++)
+            {
+                JSONObject fieldTemp = fieldsVector.get(i);
+                this.ids.add(i, fieldTemp.getString("id"));
+                this.names.add(i, fieldTemp.getString("Name"));
+                this.description.add(i, fieldTemp.getString("Description"));
+            }
+
+        }catch(JSONException jsonE){
+            Log.e("Populate data failed! ",jsonE.getMessage());
+        }
+
     }
 
     @Override
     public int getCount() {
-        return this.recordVector.length();
+        return this.recordVector.size();
     }
 
     @Override
@@ -69,15 +96,9 @@ public class RecordAdapter extends BaseAdapter {
         }
 
         //Set value into each fields
-        try{
-            viewHolder.idTextView.setText(this.recordVector.getJSONObject(position).getString("Id"));
-            viewHolder.nameTextView.setText(this.recordVector.getJSONObject(position).getString("Name")+"YO YO");
-            viewHolder.valueTextView.setText(this.recordVector.getJSONObject(position).getString("Description"));
-
-        }catch(JSONException e){
-            Log.e("Populate data failed! ", e.getMessage());
-        }
-
+            viewHolder.idTextView.setText(this.ids.get(position));
+            viewHolder.nameTextView.setText(this.names.get(position));
+            viewHolder.valueTextView.setText(this.description.get(position));
 
         return convertView;
     }

@@ -9,23 +9,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.Vector;
+import java.util.HashMap;
 
 
+import Describe.PrepareForGeneratingObject;
 import easset.naviapp.MainActivity;
 import easset.naviapp.R;
 
-public class ContentsFragment extends Fragment{
+public class ContentsFragment_not_to_use extends Fragment{
 
     private OnMainFragmentInteractionListener mListener;
     private ListView mListView;
-    private ContentsAdapter mAdaptor;
+    private ContentsAdapter_not_to_use mAdaptor;
+    PrepareForGeneratingObject mPrepareForGeneratingObject;
 
     @Nullable
     @Override
@@ -33,6 +34,35 @@ public class ContentsFragment extends Fragment{
         View rootView = inflater.inflate(R.layout.fragment_contents, container, false);
 
         /** Begin : Get data from JSONString section. */
+        final String module = getArguments().getString("chosen_module");
+        mPrepareForGeneratingObject = new PrepareForGeneratingObject();
+        mPrepareForGeneratingObject.prepare(module);
+        final PrepareForGeneratingObject.DescribeStructure describeData = mPrepareForGeneratingObject.getDescribeData();
+        final PrepareForGeneratingObject.DataOfRecord recordData = mPrepareForGeneratingObject.getRecordData();
+        JSONArray fields = new JSONArray();
+        fields = describeData.getField();
+        /* List View Process*/
+
+        /*mListView = (ListView)rootView.findViewById(R.id.contentListView);
+        mAdaptor = new ContentsAdapter_not_to_use(rootView.getContext(),fields,mListView);
+
+        mListView.setAdapter(mAdaptor);
+        mListView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> listView, View view, int position, long id) {
+                EditText myEditText = (EditText)listView.findViewById(R.id.value_edit);
+                listView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+                myEditText.requestFocus();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> listView) {
+                listView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+            }
+        });*/
+
+
+        /*
         String contentJSONStr = getArguments().getString("content_json_str");
         String chosenMenu = getArguments().getString("chosen_menu");
         String title = "";
@@ -65,9 +95,11 @@ public class ContentsFragment extends Fragment{
         if (mListener != null) {
             mListener.setTitle(title);
         }
+        */
         /* End : Get data from JSONString section. */
 
         /* List View Process*/
+        /*
         mAdaptor = new ContentsAdapter(rootView.getContext(), fields);
         mListView = (ListView)rootView.findViewById(R.id.contentListView);
         mListView.setAdapter(mAdaptor);
@@ -77,7 +109,7 @@ public class ContentsFragment extends Fragment{
 
             }
         });
-
+        */
         return rootView;
     }
 
@@ -104,6 +136,33 @@ public class ContentsFragment extends Fragment{
         Log.i("Check", "onActivityCreated " + ((MainActivity) getActivity()).getActionBarTitle());
     }
 
-    public interface OnMainFragmentInteractionListener {void setTitle(String title);
+    public interface OnMainFragmentInteractionListener {
+        void setTitle(String title);
+        View getViewByPosition(int position, ListView mListView);
+    }
+
+    /** Data generating section */
+    public class DescribeStructure{
+        protected String module;
+        protected String label;
+        protected JSONArray field;
+        protected JSONArray relations;
+        protected JSONArray permissions;
+
+        public DescribeStructure() {
+            module = "";
+            label = "";
+            field = new JSONArray();
+            relations = new JSONArray();
+            permissions = new JSONArray();
+
+        }
+    }
+
+    public class DataOfRecord{
+        HashMap data ;
+        public DataOfRecord(){
+            data = new HashMap();
+        }
     }
 }

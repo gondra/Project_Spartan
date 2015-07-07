@@ -28,11 +28,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import fragment.ContentsFragment;
+import fragment.ContentFragment;
+import fragment.ContentsFragment_not_to_use;
 import fragment.RecordFragment;
 
 
-public class MainActivity extends ActionBarActivity implements RecordFragment.OnMainFragmentInteractionListener{
+public class MainActivity extends ActionBarActivity implements RecordFragment.OnMainFragmentInteractionListener, ContentFragment.OnMainFragmentInteractionListener{
     DrawerLayout mDrawerLayout;
     ListView mListView;
     ActionBarDrawerToggle mBarDrawerToggle;
@@ -129,7 +130,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
     /**Navigation drawer's controller*/
     private void selectMenu(JSONObject contentJSON, int position, ListView mListView){
-        Fragment fragment = new RecordFragment();
+        Fragment fragment        = new RecordFragment();
         Bundle args = new Bundle();
 
         /**Store value for passing to fragment*/
@@ -145,7 +146,10 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         /**Open fragment instead of previous view*/
-        transaction.replace(R.id.content_frame, fragment).commit();
+
+        transaction.add(R.id.content_frame, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
 
         /** update selected item and title, then close the drawer*/
         mListView.setItemChecked(position, true);
@@ -194,6 +198,11 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         mBarDrawerToggle.onConfigurationChanged(newConfig);
     }
 
+    @Override
+    protected void onResume() {
+        setTitle("Spartan");
+        super.onResume();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -225,4 +234,15 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
             return listView.getChildAt(childIndex);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() > 0 ){
+            getFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+
 }
