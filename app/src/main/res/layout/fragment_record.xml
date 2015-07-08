@@ -10,5 +10,6 @@
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
         android:divider="@android:color/darker_gray"
+        android:footerDividersEnabled="true"
         android:dividerHeight="1dp"/>
 </LinearLayout>

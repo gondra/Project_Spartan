@@ -35,6 +35,7 @@ public class RecordFragment extends Fragment {
     private OnMainFragmentInteractionListener mListener;
     private ListView mListView;
     private RecordAdapter mAdaptor;
+    private Record record;
     DrawerLayout mDrawerLayout;
 
     public interface OnMainFragmentInteractionListener {
@@ -47,7 +48,10 @@ public class RecordFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_record, container, false);
-        Record record= new Record();
+        record = new Record();
+
+        final FragmentManager fragmentManager = getFragmentManager();
+        //
 
         final String chosenMenu = getArguments().getString("chosen_menu");
         generateRecordData(record); /**Convert Record JSON to Record Data */
@@ -74,12 +78,15 @@ public class RecordFragment extends Fragment {
                 }
                 String module = ((TextView) itemView.findViewById(R.id.record_name)).getText().toString();
                 args.putString("chosen_module", module);
-
+                try {
+                    args.putString("id", record.recordArray.get(position).getString("id"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
                 /**Set argument to fragment*/
                 fragment.setArguments(args);
 
-                FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
 
                 /**Open fragment instead of previous view*/

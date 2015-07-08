@@ -85,9 +85,9 @@ public class RecordAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.list_row_record, parent, false);
 
             viewHolder = new ViewHolderItem();
-            viewHolder.idTextView = (TextView) convertView.findViewById(R.id.record_id);
+            //viewHolder.idTextView = (TextView) convertView.findViewById(R.id.record_id);
             viewHolder.nameTextView = (TextView) convertView.findViewById(R.id.record_name);
-            viewHolder.valueTextView = (TextView) convertView.findViewById(R.id.record_value);
+            //viewHolder.valueTextView = (TextView) convertView.findViewById(R.id.record_value);
 
             // store the holder with the view.
             convertView.setTag(viewHolder);
@@ -96,9 +96,9 @@ public class RecordAdapter extends BaseAdapter {
         }
 
         //Set value into each fields
-            viewHolder.idTextView.setText(this.ids.get(position));
+            //viewHolder.idTextView.setText(this.ids.get(position));
             viewHolder.nameTextView.setText(this.names.get(position));
-            viewHolder.valueTextView.setText(this.description.get(position));
+            //viewHolder.valueTextView.setText(this.description.get(position));
 
         return convertView;
     }

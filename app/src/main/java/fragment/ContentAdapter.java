@@ -1,15 +1,14 @@
 package fragment;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -17,13 +16,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import easset.naviapp.R;
 
-/**
- * Created by easset-01 on 7/7/2015.
- */
 public class ContentAdapter extends BaseAdapter {
     private Context mContext;
     private JSONArray field;
@@ -38,8 +35,11 @@ public class ContentAdapter extends BaseAdapter {
     private ArrayList<Integer> length;
     private ArrayList<ArrayList<String>> listValue;
     private String[] value;
-    public ContentAdapter(Context mContext, JSONArray field){
+    private HashMap data ;
+
+    public ContentAdapter(Context mContext, JSONArray field, HashMap data){
         inflater = ((Activity) mContext).getLayoutInflater();
+        this.data = data;
         this.mContext = mContext;
         this.field = field;
         this.name = new ArrayList();
@@ -56,11 +56,6 @@ public class ContentAdapter extends BaseAdapter {
         /**Set attribute's value*/
         setValue(field);
     }
-
-    public ContentAdapter(Context mContext, String[] field){
-        this.mContext = mContext;
-        this.value = new String[]{"1","2","3"};
-    }
     
     private void setValue(JSONArray field){
         try{
@@ -74,7 +69,6 @@ public class ContentAdapter extends BaseAdapter {
                 this.required.add(i,( (JSONObject)field.get(i) ).getString("required") );
                 this.updateable.add(i,( (JSONObject)field.get(i) ).getString("updateable") );
                 this.defaultValue.add(i,( (JSONObject)field.get(i) ).getString("defaultValue") );
-               // this.listValue.add(i,( (JSONObject)field.get(i) ).getJSONArray("listValue") );
 
                 if(this.type.get(i).equalsIgnoreCase(PICK_LIST)){
                     ArrayList<String> listTemp = new ArrayList<>();
@@ -96,7 +90,7 @@ public class ContentAdapter extends BaseAdapter {
     private static class ViewHolderItem {
         TextView labelTextView;
         TextView valueEditView;
-        Spinner pickListView;
+        Button pickListBtnView;
     }
 
 
@@ -126,50 +120,27 @@ public class ContentAdapter extends BaseAdapter {
         return getType(position).equalsIgnoreCase(PICK_LIST) ? TYPE_PICK_LIST : TYPE_TEXT;
     }
 
-    private int checkpickListType(int position){
-        int valid = 0;
-        if(PICK_LIST.equalsIgnoreCase(getType(position))){
-            valid = 1 ;
-        }
-        return valid;
-    }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolderItem viewHolder;
+    public View getView(final int position, View convertView, final ViewGroup parent) {
+        final ViewHolderItem viewHolder;
         int viewType = getItemViewType(position);
+        ArrayList<String> tempFieldName = (ArrayList<String>) data.get("fieldNames");
+
         if (convertView == null) {
-            // inflate the layout
-            /*
-            if(checkpickListType(position) == 0) {
-                convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
-            }else if(checkpickListType(position) == 1){
-                convertView = inflater.inflate(R.layout.list_row_contents_pick, parent, false);
-            }else{
-                convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
-            }
-
-            viewHolder = new ViewHolderItem();
-            viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
-            if(checkpickListType(position) == 0) {
-                viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
-            }else if(checkpickListType(position) == 1){
-                viewHolder.pickListView = (Spinner) convertView.findViewById(R.id.pick_list);
-            }else{
-                viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
-            }*/
-
             viewHolder = new ViewHolderItem();
             switch (viewType) {
                 case TYPE_TEXT:
                     convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
                     viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
+
+
                     break;
                 case TYPE_PICK_LIST:
                     convertView = inflater.inflate(R.layout.list_row_contents_pick, parent, false);
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
-                    viewHolder.pickListView = (Spinner) convertView.findViewById(R.id.pick_list);
+                    viewHolder.pickListBtnView = (Button) convertView.findViewById(R.id.pick_list_btn);
                     break;
             }
 
@@ -181,13 +152,67 @@ public class ContentAdapter extends BaseAdapter {
 
         switch (viewType) {
             case TYPE_TEXT:
-                viewHolder.labelTextView.setText(this.label.get(position));
-                viewHolder.valueEditView.setText(this.defaultValue.get(position));;
+                viewHolder.labelTextView.setText(this.getLabel(position));
+                if(tempFieldName.contains(this.getName(position)) ){
+                    try{
+                        viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
+                    }catch(Exception e){
+                        viewHolder.valueEditView.setText(String.valueOf(data.get(this.getName(position))));
+                    }
+
+                }else{
+                    viewHolder.valueEditView.setText(getDefaultValue(position));
+                }
                 break;
             case TYPE_PICK_LIST:
-                viewHolder.labelTextView.setText(this.label.get(position));
-                ArrayAdapter<String> dataAdapter = new ArrayAdapter(convertView.getContext(),R.layout.item_pick_list, this.listValue.get(position));
-                viewHolder.pickListView.setAdapter(dataAdapter);
+                viewHolder.labelTextView.setText(this.getLabel(position));
+                if(tempFieldName.contains(this.getName(position)) ){
+                    viewHolder.pickListBtnView.setText((String)data.get(this.getName(position)));
+                }else{
+                    viewHolder.pickListBtnView.setText(this.getDefaultValue(position));
+                }
+                viewHolder.pickListBtnView.setOnClickListener(new View.OnClickListener() {
+                    int biggerWhere;
+                    @Override
+                    public void onClick(View v) {
+                        final ArrayList<String> itemsTemp = listValue.get(position);
+                        final String[] items = itemsTemp.toArray(new String[itemsTemp.size()]);
+                        if(viewHolder.pickListBtnView.getText().equals("") || viewHolder.pickListBtnView.getText() == null){
+                            biggerWhere = 0;
+                        }else{
+                            biggerWhere = Arrays.asList(items).indexOf(viewHolder.pickListBtnView.getText());
+                        }
+
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(mContext);
+                        alertDialogBuilder.setTitle("Status").setSingleChoiceItems(items, biggerWhere, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                    }
+                                }
+
+                        )
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                                int selectedPosition;
+                                selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                                viewHolder.pickListBtnView.setText(items[selectedPosition]);
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        // create alert dialog
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+
+                        // show it
+                        alertDialog.show();
+
+                    }
+                });
                 break;
         }
 

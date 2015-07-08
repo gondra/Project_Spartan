@@ -2,16 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="4"
+    android:weightSum="16"
     >
 
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Label : "
-        android:minHeight="64dp"
+        android:text="Label"
+        android:minHeight="50dp"
         android:id="@+id/label_text"
-        android:layout_weight="1"
+        android:layout_weight="4"
+        android:textStyle="bold"
+        android:gravity="center_vertical|end"/>
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text=":"
+        android:id="@+id/break_label"
+        android:layout_weight="0.5"
         android:textStyle="bold"
         android:gravity="center_vertical|end"/>
 
@@ -20,10 +29,10 @@
         android:layout_height="wrap_content"
         android:text="Type"
         android:id="@+id/value_edit"
-        android:layout_weight="3"
-        android:gravity="center_vertical|start"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="8dp" />
+        android:layout_weight="11.5"
+        android:gravity="center_vertical|center"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp" />
 
 
 

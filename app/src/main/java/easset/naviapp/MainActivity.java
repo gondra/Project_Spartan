@@ -143,11 +143,12 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         fragment.setArguments(args);
 
         FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         /**Open fragment instead of previous view*/
 
-        transaction.add(R.id.content_frame, fragment);
+        transaction.replace(R.id.content_frame, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
 
