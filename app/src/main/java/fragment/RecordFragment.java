@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,10 +37,11 @@ public class RecordFragment extends Fragment {
     private ListView mListView;
     private RecordAdapter mAdaptor;
     private Record record;
+    private String chosen_module;
     DrawerLayout mDrawerLayout;
 
     public interface OnMainFragmentInteractionListener {
-        void setTitle(String title);
+        void setTitle(String title,Activity childActivity);
         View getViewByPosition(int position, ListView mListView);
     }
 
@@ -53,14 +55,9 @@ public class RecordFragment extends Fragment {
         final FragmentManager fragmentManager = getFragmentManager();
         //
 
-        final String chosenMenu = getArguments().getString("chosen_menu");
+        chosen_module = getArguments().getString("chosen_module");
         generateRecordData(record); /**Convert Record JSON to Record Data */
         mDrawerLayout = (DrawerLayout)rootView.findViewById(R.id.drawer_layout);
-
-        /**Set title*/
-        if (mListener != null) {
-            mListener.setTitle(chosenMenu);
-        }
 
         /**Prepare ListView*/
         mAdaptor = new RecordAdapter(rootView.getContext(),record.recordArray);
@@ -76,8 +73,9 @@ public class RecordFragment extends Fragment {
                 if (mListener != null) {
                     itemView = mListener.getViewByPosition(position, mListView);
                 }
-                String module = ((TextView) itemView.findViewById(R.id.record_name)).getText().toString();
-                args.putString("chosen_module", module);
+                String recordName = ((TextView) itemView.findViewById(R.id.record_name)).getText().toString();
+                args.putString("chosen_record", recordName);
+                args.putString("chosen_module", chosen_module);
                 try {
                     args.putString("id", record.recordArray.get(position).getString("id"));
                 } catch (JSONException e) {
@@ -90,7 +88,7 @@ public class RecordFragment extends Fragment {
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
 
                 /**Open fragment instead of previous view*/
-                transaction.replace(R.id.content_frame, fragment);
+                transaction.replace(R.id.content_frame, fragment, "CONTENT_FRAGMENT");
                 transaction.addToBackStack(null);
                 transaction.commit();
 
@@ -103,16 +101,7 @@ public class RecordFragment extends Fragment {
         return rootView;
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnMainFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
+
 
 
     private String generateRecordData(Record record){
@@ -134,7 +123,36 @@ public class RecordFragment extends Fragment {
       return LEAD_RECORD_JSON;
     }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnMainFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
 
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        /**Set title*/
+        if (mListener != null) {
+            mListener.setTitle(chosen_module,getActivity());
+        }
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.w("App destroyed", "App destroyed");
+
+        super.onDestroy();
+    }
 }

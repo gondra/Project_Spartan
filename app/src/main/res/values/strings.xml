@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Spartan</string>
-
-    <string name="action_settings">Settings</string>
+    <string name="edit_record">Edit</string>
+    <string name="action_edit">Edit</string>
     <string name="drawer_open">Spartan Menu</string>
     <string name="drawer_close">Spartan</string>
     <string name="login_title">Project Spartan</string>

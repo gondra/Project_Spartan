@@ -5,10 +5,11 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:theme="@style/SpartanTheme" >
+         >
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:theme="@style/SpartanTheme">
 
         </activity>
         <activity android:name=".LoginActivity"
@@ -17,6 +18,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".EditContentActivity"
+            android:label="@string/edit_record"
+            android:theme="@style/SpartanEditTheme"
+            android:windowSoftInputMode="adjustPan">
+
         </activity>
     </application>
 

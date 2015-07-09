@@ -1,5 +1,6 @@
 package easset.naviapp;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -8,11 +9,13 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import fragment.ContentFragment;
-import fragment.ContentsFragment_not_to_use;
 import fragment.RecordFragment;
 
 
@@ -97,7 +99,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getApplicationContext(),""+position,Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "" + position, Toast.LENGTH_SHORT).show();
                 /**select menu on the left sidebar*/
                 selectMenu(contentJSON, position, mListView);
             }
@@ -136,7 +138,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         /**Store value for passing to fragment*/
         TextView itemView = (TextView)getViewByPosition(position, mListView);
         //args.putString("content_json_str",contentJSON.toString());
-        args.putString("chosen_menu", (String) itemView.getText());
+        args.putString("chosen_module", (String) itemView.getText());
 
 
         /**Set argument to fragment*/
@@ -148,7 +150,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
         /**Open fragment instead of previous view*/
 
-        transaction.replace(R.id.content_frame, fragment);
+        transaction.replace(R.id.content_frame, fragment, "RECORD_FRAGMENT");
         transaction.addToBackStack(null);
         transaction.commit();
 
@@ -182,6 +184,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         return  resultArray;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return mBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
@@ -207,7 +210,15 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        return super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
+        if (f instanceof ContentFragment){
+            inflater.inflate(R.menu.menu_content, menu);
+        }else{
+            inflater.inflate(R.menu.menu_main, menu);
+        }
+
+        return true;
     }
 
     public String getActionBarTitle(){
@@ -215,14 +226,16 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
     }
 
     @Override
-    public void setTitle(String title) {
+    public void setTitle(String title,Activity childActivity) {
         try{
             super.setTitle(title);
+            getSupportActionBar().setTitle(getTitle().toString());
         }catch(Exception e){
             Log.e("Set title ",e.getMessage());
         }
 
     }
+
 
     public View getViewByPosition(int pos, ListView listView) {
         final int firstListItemPosition = listView.getFirstVisiblePosition();
@@ -244,6 +257,8 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
             super.onBackPressed();
         }
     }
+
+
 
 
 }

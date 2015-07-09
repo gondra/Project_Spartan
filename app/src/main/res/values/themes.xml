@@ -9,6 +9,12 @@
 
     </style>
 
+    <style name="SpartanEditTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:actionBarStyle"   tools:ignore="NewApi">@style/SpartanEditActionBar</item>
+        <item name="actionBarStyle">@style/SpartanEditActionBar</item>
+
+    </style>
+
     <style name = "NoActionBar" parent = "SpartanTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -19,6 +25,13 @@
         <item name="background">@color/primary</item>
         <item name="titleTextStyle">@style/SpartanTitleTextStyle</item>
         <item name="android:homeAsUpIndicator">@mipmap/ic_drawer</item>
+    </style>
+
+    <style name="SpartanEditActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background"  tools:ignore="NewApi">@color/primary</item>
+        <item name="background">@color/primary</item>
+        <item name="displayOptions">showCustom</item>
+        <item name="android:displayOptions">showCustom</item>
     </style>
 
     <style name="SpartanTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">

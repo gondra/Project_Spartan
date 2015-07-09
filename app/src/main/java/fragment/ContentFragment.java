@@ -3,16 +3,16 @@ package fragment;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import Describe.PrepareForGeneratingObject;
+import easset.naviapp.EditContentActivity;
 import easset.naviapp.R;
 
 public class ContentFragment extends Fragment {
@@ -31,20 +32,27 @@ public class ContentFragment extends Fragment {
     private ContentAdapter mAdaptor;
     private DescribeStructure describe;
     private HashMap data ;
-
+    private String recordName;
+    private String chosen_module;
+    private Bundle recordData;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         View rootView = inflater.inflate(R.layout.fragment_contents, container, false);
-        String module = getArguments().getString("chosen_module");
+        recordName = getArguments().getString("chosen_record");
+        chosen_module = getArguments().getString("chosen_module");
         String id = getArguments().getString("id");
         data = new HashMap();
+        recordData = new Bundle();
+
+        /**Preparing data*/
         describe = new DescribeStructure();
-        generateDescribeFromJSON(module);
-        generateRecordDataFromJSON(module,id);
+        generateDescribeFromJSON(chosen_module);
+        generateRecordDataFromJSON(chosen_module,id);
         JSONArray field = describe.field;
+
         mAdaptor = new ContentAdapter(rootView.getContext(),field, data);
-        //mAdaptor = new ContentAdapter(rootView.getContext(),new String[]{"1","2","3"});
         mListView = (ListView)rootView.findViewById(R.id.contentListView);
         try{
             mListView.setAdapter(mAdaptor);
@@ -80,7 +88,7 @@ public class ContentFragment extends Fragment {
     }
 
     public interface OnMainFragmentInteractionListener {
-        void setTitle(String title);
+        void setTitle(String title,Activity childActivity);
         View getViewByPosition(int position, ListView mListView);
     }
 
@@ -102,9 +110,9 @@ public class ContentFragment extends Fragment {
         }
     }
 
-    private void generateDescribeFromJSON(String module){
+    private void generateDescribeFromJSON(String chosen_module){
         /*
-            Search describe by module value
+            Search describe by chosen_module value
         */
 
         final String LEAD_DESCRIBE_JSON = "{\"module\":\"Lead\",\"label\":\"Lead\",\"fields\":[{\"name\":\"id\",\"type\":\"id\",\"length\":50,\"format\":\"\",\"label\":\"id\",\"labelTH\":\"id\",\"required\":true,\"updateable\":false,\"defaultValue\":\"\"},{\"name\":\"LeadName\",\"type\":\"string\",\"length\":25,\"format\":\"\",\"label\":\"Lead Name\",\"labelTH\":\" Lead Name\",\"required\":false,\"updateable\":true,\"defaultValue\":\"\"},{\"name\":\"LeadStatus\",\"type\":\"picklist\",\"length\":0,\"format\":\"\",\"label\":\"Lead Status\",\"labelTH\":\" Lead Status \",\"required\":true,\"updateable\":true,\"defaultValue\":\"Open\",\"listValue\":[{\"name\":\"Open\"},{\"name\":\"Close\"}]},{\"name\":\"Amount\",\"type\":\"integer\",\"length\":0,\"format\":\"#00.00\",\"label\":\"Amount\",\"labelTH\":\"Amount\",\"required\":true,\"updateable\":true,\"defaultValue\":\"\"},{\"name\":\"CreateDate\",\"type\":\"DateTime\",\"length\":0,\"format\":\"dd-mm-yyyy\",\"label\":\"Create Date\",\"labelTH\":\"Create Date\",\"required\":false,\"updateable\":true,\"defaultValue\":\"Damn\"}],\"Relations\":[{}],\"Permissions\":[{\"access\":true,\"create\":true,\"edit\":true,\"delete\":true}]}";
@@ -126,9 +134,9 @@ public class ContentFragment extends Fragment {
         }
     }
 
-    private void generateRecordDataFromJSON(String module, String id){
+    private void generateRecordDataFromJSON(String chosen_module, String id){
         /*
-            Search record data by module value
+            Search record data by id value
         */
         final String LEAD_RECORD1_JSON = "{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"LeadName\":\"Acme, Inc.\",\"LeadStatus\":\"Open\",\"Amount\":15000,\"CreateDate\":\"20-04-2557\"}";
         final String LEAD_RECORD2_JSON = "{\"id\":\"295C6D74-6F31-4762-8D5A-37314B4BF358\",\"LeadName\":\"Umbrella, Cooperation.\",\"LeadStatus\":\"Open\",\"Amount\":220000," +
@@ -170,4 +178,31 @@ public class ContentFragment extends Fragment {
 
         return fieldNames;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        /**Set title*/
+        if (mListener != null) {
+            mListener.setTitle(recordName,getActivity());
+        }
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_edit:
+                Intent editIntent = new Intent(getActivity().getApplicationContext(), EditContentActivity.class);
+                editIntent.putExtras(recordData);
+                getActivity().startActivity(editIntent);
+                return true;
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+
 }
