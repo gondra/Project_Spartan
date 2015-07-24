@@ -1,4 +1,4 @@
-package fragment;
+package easset.naviapp;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,9 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import easset.naviapp.R;
-
-public class ContentAdapter extends BaseAdapter {
+public class EditContentAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Object> field;
     private static final String PICK_LIST = "picklist";
@@ -36,8 +34,11 @@ public class ContentAdapter extends BaseAdapter {
     private ArrayList<ArrayList<String>> listValue;
     private String[] value;
     private HashMap data ;
+    public EditContentAdapter(){
 
-    public ContentAdapter(Context mContext, ArrayList<Object> field, HashMap data){
+    }
+
+    public EditContentAdapter(Context mContext, ArrayList<Object> field, HashMap data){
         inflater = ((Activity) mContext).getLayoutInflater();
         this.data = data;
         this.mContext = mContext;
@@ -52,11 +53,11 @@ public class ContentAdapter extends BaseAdapter {
         this.defaultValue = new ArrayList();
         this.listValue = new ArrayList();
         this.length = new ArrayList();
-        
+
         /**Set attribute's value*/
         setValue(field);
     }
-    
+
     private void setValue(ArrayList<Object> field){
         try{
             for(int i=0;i<field.size();i++){
@@ -92,7 +93,6 @@ public class ContentAdapter extends BaseAdapter {
         TextView valueEditView;
         Button pickListBtnView;
     }
-
 
     @Override
     public int getCount() {
@@ -191,19 +191,19 @@ public class ContentAdapter extends BaseAdapter {
                                 }
 
                         )
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.dismiss();
-                                int selectedPosition;
-                                selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                                viewHolder.pickListBtnView.setText(items[selectedPosition]);
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
+                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.dismiss();
+                                        int selectedPosition;
+                                        selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                                        viewHolder.pickListBtnView.setText(items[selectedPosition]);
+                                    }
+                                })
+                                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
 
                         // create alert dialog
                         AlertDialog alertDialog = alertDialogBuilder.create();

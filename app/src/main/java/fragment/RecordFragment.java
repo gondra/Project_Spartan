@@ -23,20 +23,14 @@ import org.json.JSONObject;
 import java.util.Vector;
 
 import easset.naviapp.R;
+import model.RecordM;
 
 public class RecordFragment extends Fragment {
-
-    private static class Record{
-        int currentPage;
-        int rowPerPage;
-        int totalPage;
-        Vector<JSONObject> recordArray;
-    }
 
     private OnMainFragmentInteractionListener mListener;
     private ListView mListView;
     private RecordAdapter mAdaptor;
-    private Record record;
+    private RecordM record;
     private String chosen_module;
     DrawerLayout mDrawerLayout;
 
@@ -50,7 +44,7 @@ public class RecordFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_record, container, false);
-        record = new Record();
+        record = new RecordM();
 
         final FragmentManager fragmentManager = getFragmentManager();
         //
@@ -60,7 +54,7 @@ public class RecordFragment extends Fragment {
         mDrawerLayout = (DrawerLayout)rootView.findViewById(R.id.drawer_layout);
 
         /**Prepare ListView*/
-        mAdaptor = new RecordAdapter(rootView.getContext(),record.recordArray);
+        mAdaptor = new RecordAdapter(rootView.getContext(),record.getRecordArray());
         mListView = (ListView)rootView.findViewById(R.id.recordListView);
         mListView.setAdapter(mAdaptor);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -77,7 +71,7 @@ public class RecordFragment extends Fragment {
                 args.putString("chosen_record", recordName);
                 args.putString("chosen_module", chosen_module);
                 try {
-                    args.putString("id", record.recordArray.get(position).getString("id"));
+                    args.putString("id", record.getRecordArray().get(position).getString("id"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -104,18 +98,19 @@ public class RecordFragment extends Fragment {
 
 
 
-    private String generateRecordData(Record record){
+    private String generateRecordData(RecordM record){
         final String LEAD_RECORD_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead Name 1\",\"Description\":\"Lead Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead Name 2\",\"Description\":\"Lead Description 2\"}]}";
         try{
-            record.recordArray = new Vector();
             JSONObject leadRecordJSON = new JSONObject(LEAD_RECORD_JSON);
-            record.currentPage = leadRecordJSON.getInt("currentPage");
-            record.rowPerPage = leadRecordJSON.getInt("rowPerPage");
-            record.totalPage = leadRecordJSON.getInt("totalPage");
+            record.setCurrentPage(leadRecordJSON.getInt("currentPage"));
+            record.setRowPerPage(leadRecordJSON.getInt("rowPerPage"));
+            record.setTotalPage(leadRecordJSON.getInt("totalPage"));
             JSONArray tmpArray = leadRecordJSON.getJSONArray("records");
+            Vector<JSONObject> recordVec = new Vector<>();
             for(int i=0;i<tmpArray.length();i++){
-                record.recordArray.add(i, (JSONObject) tmpArray.get(i));
+                recordVec.add(i, (JSONObject) tmpArray.get(i));
             }
+            record.setRecordArray(recordVec);
         }
         catch(JSONException e){
             Log.e("convert record JSON : ",e.getMessage());

@@ -8,12 +8,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         >
-         <!--<fragment
-             android:id="@+id/fragment_record"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:name="fragment.HomeFragment"
-             tools:layout="@layout/fragment_home" />-->
+         <Button
+             android:layout_width="60dp"
+             android:layout_height="wrap_content"
+             android:id="@+id/test"
+             android:text="Api"
+             android:layout_gravity="center"
+             />
+
     </FrameLayout>
 
     <ListView

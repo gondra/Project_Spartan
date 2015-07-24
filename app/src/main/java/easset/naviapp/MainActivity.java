@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +29,10 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -128,6 +134,14 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         mBarDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerListener(mBarDrawerToggle);
 
+        Button apiBtn = (Button)findViewById(R.id.test);
+        apiBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new CallAPI(getApplicationContext()).execute("");
+            }
+        });
+
     }
 
     /**Navigation drawer's controller*/
@@ -214,6 +228,8 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
         if (f instanceof ContentFragment){
             inflater.inflate(R.menu.menu_content, menu);
+        }else if(f instanceof RecordFragment){
+            inflater.inflate(R.menu.menu_record, menu);
         }else{
             inflater.inflate(R.menu.menu_main, menu);
         }
@@ -262,3 +278,44 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
 
 }
+
+class CallAPI extends AsyncTask<String, String, String> {
+    //public final static String urlString = "http://192.168.1.151:8080/FreeWriting/login";
+    public final static String urlString = "http://www.pantip.com";
+    Context mContext;
+    public CallAPI(Context mContext){
+        this.mContext = mContext;
+    }
+    @Override
+    protected String doInBackground(String... params) {
+
+        String resultToDisplay = "";
+
+        InputStream in = null;
+
+        // HTTP Get
+        try {
+
+            URL url = new URL(urlString);
+
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+            in = new BufferedInputStream(urlConnection.getInputStream());
+
+        } catch (Exception e ) {
+
+            System.out.println(e.getMessage());
+
+            return e.getMessage();
+
+        }
+
+        return "Test";
+
+    }
+
+    protected void onPostExecute(String result) {
+        Toast.makeText(mContext,result,Toast.LENGTH_SHORT).show();
+    }
+
+} // end CallAPI
