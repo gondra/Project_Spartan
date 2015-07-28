@@ -1,37 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:weightSum="1">
-
-
-    <RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="64dp"
-    android:background="@color/sub_title"
-    android:id="@+id/subTitle"
-    android:focusableInTouchMode="false">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/subTitleText"
-        android:textSize="24sp"
-        android:text="Edit data"
-        android:textStyle="bold"
-        android:layout_centerVertical="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="54dp"
-        android:textColor="@color/abc_primary_text_disable_only_material_dark"/>
-
-    </RelativeLayout>
+    android:layout_height="match_parent">
 
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:id="@+id/listEdit"
-        android:layout_below="@+id/subTitle"
         android:layout_alignParentStart="true"
-        android:descendantFocusability="beforeDescendants"/>
+        android:descendantFocusability="beforeDescendants"
+        android:focusable="false"/>
 
 </RelativeLayout>

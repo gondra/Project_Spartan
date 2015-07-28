@@ -2,13 +2,18 @@ package easset.naviapp;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -17,29 +22,37 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
+
+import Utils.DatePickerDialog;
 
 public class EditContentAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Object> field;
     private static final String PICK_LIST = "picklist";
+    private static final String DATE_TYPE = "DateTime";
+    private static final String TEXT_EXPAND = "DateTime";
+    private static final String INTEGER = "integer";
     private static final int TYPE_TEXT = 0;
     private static final int TYPE_PICK_LIST = 1;
-    private static final int TYPE_MAX_COUNT = TYPE_PICK_LIST + 1;
+    private static final int TYPE_TEXT_EDIT = 2;
+    private static final int TYPE_TEXT_EXPAND = 3;
+    private static final int TYPE_MAX_COUNT = TYPE_TEXT_EXPAND + 1;
     LayoutInflater inflater;
 
     /**Attribute of each list*/
-    private ArrayList<String> name, type, format, label, labelTH, required, updateable, defaultValue ;
+    private ArrayList<String> name, type, format, label, labelTH, required, defaultValue ;
+    private ArrayList<Boolean> updateable;
     private ArrayList<Integer> length;
     private ArrayList<ArrayList<String>> listValue;
-    private String[] value;
+    private HashMap modifiedData;
     private HashMap data ;
-    public EditContentAdapter(){
-
-    }
 
     public EditContentAdapter(Context mContext, ArrayList<Object> field, HashMap data){
+
         inflater = ((Activity) mContext).getLayoutInflater();
+        this.modifiedData = new HashMap();
         this.data = data;
         this.mContext = mContext;
         this.field = field;
@@ -56,6 +69,13 @@ public class EditContentAdapter extends BaseAdapter {
 
         /**Set attribute's value*/
         setValue(field);
+        try {
+            mOnEditContentListener = (OnEditContentListener) this.mContext;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(this.mContext.toString()
+                    + " must implement OnEditContentListener");
+        }
+
     }
 
     private void setValue(ArrayList<Object> field){
@@ -68,7 +88,7 @@ public class EditContentAdapter extends BaseAdapter {
                 this.label.add(i,( (JSONObject)field.get(i) ).getString("label") );
                 this.labelTH.add(i,( (JSONObject)field.get(i) ).getString("labelTH") );
                 this.required.add(i,( (JSONObject)field.get(i) ).getString("required") );
-                this.updateable.add(i,( (JSONObject)field.get(i) ).getString("updateable") );
+                this.updateable.add(i,( (JSONObject) field.get(i)).getString("updateable").equalsIgnoreCase("true") );
                 this.defaultValue.add(i,( (JSONObject)field.get(i) ).getString("defaultValue") );
 
                 if(this.type.get(i).equalsIgnoreCase(PICK_LIST)){
@@ -92,6 +112,8 @@ public class EditContentAdapter extends BaseAdapter {
         TextView labelTextView;
         TextView valueEditView;
         Button pickListBtnView;
+        DatePicker datePickerView;
+        LinearLayout expandSection;
     }
 
     @Override
@@ -117,8 +139,28 @@ public class EditContentAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        return getType(position).equalsIgnoreCase(PICK_LIST) ? TYPE_PICK_LIST : TYPE_TEXT;
+        int result;
+        boolean updateable = getUpdateable(position);
+        if(!updateable){
+            result = TYPE_TEXT;
+        }else{
+            if(getType(position).equalsIgnoreCase(PICK_LIST)){
+                result = TYPE_PICK_LIST;
+            }else if(getType(position).equalsIgnoreCase(DATE_TYPE)){
+                result = TYPE_TEXT_EXPAND;
+            }
+            else if(getType(position).equalsIgnoreCase(INTEGER)){
+                result = TYPE_TEXT_EDIT;
+            }
+            else{
+                result = TYPE_TEXT_EDIT;
+            }
+        }
+
+
+        return result;
     }
+
 
 
     @Override
@@ -134,9 +176,26 @@ public class EditContentAdapter extends BaseAdapter {
                     convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
                     viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
-
-
                     break;
+
+                case TYPE_TEXT_EDIT:
+                    convertView = inflater.inflate(R.layout.list_row_contents_edit, parent, false);
+                    viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
+                    viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
+                    break;
+
+                case TYPE_TEXT_EXPAND:
+                    convertView = inflater.inflate(R.layout.list_row_contents_text_expand, parent, false);
+                    viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
+                    viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_view);
+                    viewHolder.datePickerView = (DatePicker) convertView.findViewById(R.id.expand_section);
+                    final Calendar c = Calendar.getInstance();
+                    int year = c.get(Calendar.YEAR);
+                    int month = c.get(Calendar.MONTH);
+                    int day = c.get(Calendar.DAY_OF_MONTH);
+                    viewHolder.datePickerView.init(year, month, day, null);
+                    break;
+
                 case TYPE_PICK_LIST:
                     convertView = inflater.inflate(R.layout.list_row_contents_pick, parent, false);
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
@@ -164,6 +223,53 @@ public class EditContentAdapter extends BaseAdapter {
                     viewHolder.valueEditView.setText(getDefaultValue(position));
                 }
                 break;
+
+            case TYPE_TEXT_EDIT:
+                viewHolder.labelTextView.setText(this.getLabel(position));
+                if(tempFieldName.contains(this.getName(position)) ){
+                    try{
+                        viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
+                    }catch(Exception e){
+                        viewHolder.valueEditView.setText(String.valueOf(data.get(this.getName(position))));
+                    }
+
+                }else{
+                    viewHolder.valueEditView.setText(getDefaultValue(position));
+                }
+                break;
+
+            case TYPE_TEXT_EXPAND: //Calendar
+                viewHolder.labelTextView.setText(this.getLabel(position));
+                if(tempFieldName.contains(this.getName(position)) ){
+                    try{
+                        viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
+                    }catch(Exception e){
+                        viewHolder.valueEditView.setText(String.valueOf(data.get(this.getName(position))));
+                    }
+
+                }else{
+                    viewHolder.valueEditView.setText(getDefaultValue(position));
+                }
+
+                viewHolder.datePickerView.setVisibility(View.GONE);
+                viewHolder.valueEditView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int visibility = viewHolder.datePickerView.getVisibility();
+                        if(visibility == View.VISIBLE){
+                            collapse(viewHolder.datePickerView);
+                        }else if(visibility == View.INVISIBLE){
+                            expand(viewHolder.datePickerView);
+                        }else if(visibility == View.GONE){
+                            expand(viewHolder.datePickerView);
+                        }else{
+
+                        }
+
+                    }
+                });
+                break;
+
             case TYPE_PICK_LIST:
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(tempFieldName.contains(this.getName(position)) ){
@@ -216,8 +322,86 @@ public class EditContentAdapter extends BaseAdapter {
                 break;
         }
 
+        //set modified data
+        modifiedData.put(this.getName(position), data.get(data.get(this.getName(position))));
+
+        //send back to activity
+        if(position == (this.name.size()-1)){
+
+            if(mOnEditContentListener!=null){
+                mOnEditContentListener.transferModifiedData(modifiedData);
+            }
+        }
         return convertView;
     }
+
+    //Calendar show/hide
+    public static void expand(final View v) {
+        v.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        final int targetHeight = v.getMeasuredHeight();
+
+        v.getLayoutParams().height = 0;
+        v.setVisibility(View.VISIBLE);
+
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                v.getLayoutParams().height = interpolatedTime == 1
+                        ? ViewGroup.LayoutParams.WRAP_CONTENT
+                        : (int)(targetHeight * interpolatedTime);
+                v.requestLayout();
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        int speed = (int)(targetHeight / v.getContext().getResources().getDisplayMetrics().density);
+        a.setDuration(150);
+        v.startAnimation(a);
+
+    }
+
+    public static void collapse(final View v) {
+        final int initialHeight = v.getMeasuredHeight();
+
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                if(interpolatedTime == 1){
+                    v.setVisibility(View.GONE);
+                }else{
+                    v.getLayoutParams().height = initialHeight - (int)(initialHeight * interpolatedTime);
+                    v.requestLayout();
+                }
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        int speed = (int)(initialHeight / v.getContext().getResources().getDisplayMetrics().density);
+        a.setDuration(150);
+        v.startAnimation(a);
+    }
+
+    //Listener interface
+    public interface OnEditContentListener{
+        public void transferModifiedData(HashMap modifiedData);
+    }
+    OnEditContentListener mOnEditContentListener;
+
+
+    //send data to other activity
+
 
     public String getFormat(int position) {
         return format.get(position);
@@ -251,7 +435,7 @@ public class EditContentAdapter extends BaseAdapter {
         return type.get(position);
     }
 
-    public String getUpdateable(int position) {
+    public boolean getUpdateable(int position) {
         return updateable.get(position);
     }
 

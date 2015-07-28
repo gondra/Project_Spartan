@@ -129,20 +129,9 @@ public class ContentAdapter extends BaseAdapter {
 
         if (convertView == null) {
             viewHolder = new ViewHolderItem();
-            switch (viewType) {
-                case TYPE_TEXT:
                     convertView = inflater.inflate(R.layout.list_row_contents_text, parent, false);
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
                     viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
-
-
-                    break;
-                case TYPE_PICK_LIST:
-                    convertView = inflater.inflate(R.layout.list_row_contents_pick, parent, false);
-                    viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
-                    viewHolder.pickListBtnView = (Button) convertView.findViewById(R.id.pick_list_btn);
-                    break;
-            }
 
             // store the holder with the view.
             convertView.setTag(viewHolder);
@@ -150,8 +139,6 @@ public class ContentAdapter extends BaseAdapter {
             viewHolder = (ViewHolderItem) convertView.getTag();
         }
 
-        switch (viewType) {
-            case TYPE_TEXT:
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(tempFieldName.contains(this.getName(position)) ){
                     try{
@@ -163,58 +150,7 @@ public class ContentAdapter extends BaseAdapter {
                 }else{
                     viewHolder.valueEditView.setText(getDefaultValue(position));
                 }
-                break;
-            case TYPE_PICK_LIST:
-                viewHolder.labelTextView.setText(this.getLabel(position));
-                if(tempFieldName.contains(this.getName(position)) ){
-                    viewHolder.pickListBtnView.setText((String)data.get(this.getName(position)));
-                }else{
-                    viewHolder.pickListBtnView.setText(this.getDefaultValue(position));
-                }
-                viewHolder.pickListBtnView.setOnClickListener(new View.OnClickListener() {
-                    int biggerWhere;
-                    @Override
-                    public void onClick(View v) {
-                        final ArrayList<String> itemsTemp = listValue.get(position);
-                        final String[] items = itemsTemp.toArray(new String[itemsTemp.size()]);
-                        if(viewHolder.pickListBtnView.getText().equals("") || viewHolder.pickListBtnView.getText() == null){
-                            biggerWhere = 0;
-                        }else{
-                            biggerWhere = Arrays.asList(items).indexOf(viewHolder.pickListBtnView.getText());
-                        }
 
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(mContext);
-                        alertDialogBuilder.setTitle("Status").setSingleChoiceItems(items, biggerWhere, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                }
-
-                        )
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.dismiss();
-                                int selectedPosition;
-                                selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                                viewHolder.pickListBtnView.setText(items[selectedPosition]);
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
-
-                        // create alert dialog
-                        AlertDialog alertDialog = alertDialogBuilder.create();
-
-                        // show it
-                        alertDialog.show();
-
-                    }
-                });
-                break;
-        }
 
         return convertView;
     }
