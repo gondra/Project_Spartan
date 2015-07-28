@@ -166,8 +166,18 @@ public class EditContentAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, final ViewGroup parent) {
         final ViewHolderItem viewHolder;
+        ArrayList<String> tempFieldName = null;
+        boolean hasData = false;
+        if(data!=null){
+            tempFieldName = (ArrayList<String>) data.get("fieldNames");
+        }
+
+        if(tempFieldName.contains(this.getName(position) )&& tempFieldName!=null ){
+            hasData = true;
+        }
+
         int viewType = getItemViewType(position);
-        ArrayList<String> tempFieldName = (ArrayList<String>) data.get("fieldNames");
+
 
         if (convertView == null) {
             viewHolder = new ViewHolderItem();
@@ -212,7 +222,7 @@ public class EditContentAdapter extends BaseAdapter {
         switch (viewType) {
             case TYPE_TEXT:
                 viewHolder.labelTextView.setText(this.getLabel(position));
-                if(tempFieldName.contains(this.getName(position)) ){
+                if(hasData ){
                     try{
                         viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
                     }catch(Exception e){
@@ -226,7 +236,7 @@ public class EditContentAdapter extends BaseAdapter {
 
             case TYPE_TEXT_EDIT:
                 viewHolder.labelTextView.setText(this.getLabel(position));
-                if(tempFieldName.contains(this.getName(position)) ){
+                if(hasData){
                     try{
                         viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
                     }catch(Exception e){
@@ -240,7 +250,7 @@ public class EditContentAdapter extends BaseAdapter {
 
             case TYPE_TEXT_EXPAND: //Calendar
                 viewHolder.labelTextView.setText(this.getLabel(position));
-                if(tempFieldName.contains(this.getName(position)) ){
+                if(hasData){
                     try{
                         viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
                     }catch(Exception e){
@@ -272,7 +282,7 @@ public class EditContentAdapter extends BaseAdapter {
 
             case TYPE_PICK_LIST:
                 viewHolder.labelTextView.setText(this.getLabel(position));
-                if(tempFieldName.contains(this.getName(position)) ){
+                if(hasData){
                     viewHolder.pickListBtnView.setText((String)data.get(this.getName(position)));
                 }else{
                     viewHolder.pickListBtnView.setText(this.getDefaultValue(position));
