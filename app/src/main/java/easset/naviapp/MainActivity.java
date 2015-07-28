@@ -1,10 +1,12 @@
 package easset.naviapp;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -134,13 +136,13 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         mBarDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerListener(mBarDrawerToggle);
 
-        Button apiBtn = (Button)findViewById(R.id.test);
+        /*Button apiBtn = (Button)findViewById(R.id.test);
         apiBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new CallAPI(getApplicationContext()).execute("");
             }
-        });
+        });*/
 
     }
 
@@ -267,11 +269,31 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
     @Override
     public void onBackPressed() {
-        if (getFragmentManager().getBackStackEntryCount() > 0 ){
-            getFragmentManager().popBackStack();
-        } else {
-            super.onBackPressed();
+        if(mDrawerLayout.isDrawerOpen(mListView)){
+            mDrawerLayout.closeDrawer(mListView);
+        }else{
+            if (getFragmentManager().getBackStackEntryCount() > 0 ){
+                getFragmentManager().popBackStack();
+            } else {
+                AlertDialog.Builder exitDialog = new AlertDialog.Builder(MainActivity.this,AlertDialog.THEME_DEVICE_DEFAULT_LIGHT);
+                exitDialog.setTitle("Exit?")
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        })
+                        .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                finish();
+                            }
+                        });
+                exitDialog.create().show();
+//            super.onBackPressed();
+            }
         }
+
     }
 
 
@@ -279,6 +301,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
 }
 
+//Fetching JSON from rest api
 class CallAPI extends AsyncTask<String, String, String> {
     //public final static String urlString = "http://192.168.1.151:8080/FreeWriting/login";
     public final static String urlString = "http://www.pantip.com";
