@@ -24,6 +24,7 @@ import easset.naviapp.R;
 public class RecordAdapter extends BaseAdapter {
     Context mContext;
     Vector<JSONObject> recordVector;
+
     private ArrayList<String> ids;
     private ArrayList<String> names;
     private ArrayList<String> description;
@@ -31,6 +32,7 @@ public class RecordAdapter extends BaseAdapter {
     private static class ViewHolderItem {
         TextView idTextView;
         TextView nameTextView;
+        TextView descriptionTextView;
         TextView valueTextView;
 
     }
@@ -87,7 +89,7 @@ public class RecordAdapter extends BaseAdapter {
             viewHolder = new ViewHolderItem();
             //viewHolder.idTextView = (TextView) convertView.findViewById(R.id.record_id);
             viewHolder.nameTextView = (TextView) convertView.findViewById(R.id.record_name);
-            //viewHolder.valueTextView = (TextView) convertView.findViewById(R.id.record_value);
+            viewHolder.descriptionTextView = (TextView) convertView.findViewById(R.id.record_description);
 
             // store the holder with the view.
             convertView.setTag(viewHolder);
@@ -98,8 +100,13 @@ public class RecordAdapter extends BaseAdapter {
         //Set value into each fields
             //viewHolder.idTextView.setText(this.ids.get(position));
             viewHolder.nameTextView.setText(this.names.get(position));
+            viewHolder.descriptionTextView.setText(this.description.get(position));
             //viewHolder.valueTextView.setText(this.description.get(position));
 
         return convertView;
+    }
+
+    public String getChosenItemId(int position) {
+        return this.ids.get(position);
     }
 }

@@ -6,10 +6,9 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/listEdit"
+        android:id="@+id/listAdd"
         android:layout_alignParentStart="true"
         android:descendantFocusability="beforeDescendants"
         android:focusable="false"
         android:background="@android:color/white"/>
-
 </RelativeLayout>

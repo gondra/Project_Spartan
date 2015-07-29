@@ -7,8 +7,30 @@
         android:id="@+id/content_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/white"
         >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:id="@+id/json"
+            android:overScrollMode="ifContentScrolls"/>
 
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:id="@+id/profilePic"
+            android:layout_gravity="center"
+            android:scaleType="fitXY"
+            android:adjustViewBounds="true"/>
+        <ProgressBar
+            android:id="@+id/mainprogressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="invisible"
+            android:indeterminateDrawable="@drawable/progress" >
+        </ProgressBar>
     </FrameLayout>
 
     <ListView
@@ -17,8 +39,8 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
-        android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp"
+        android:divider="@drawable/divider_line"
+        android:dividerHeight="1px"
         android:background="@color/background_material_light"/>
 
 </android.support.v4.widget.DrawerLayout>

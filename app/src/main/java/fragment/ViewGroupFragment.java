@@ -42,32 +42,35 @@ public class ViewGroupFragment extends Fragment{
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_record, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_view, container, false);
         record = new RecordM();
 
         final FragmentManager fragmentManager = getFragmentManager();
         //
 
         chosen_module = getArguments().getString("chosen_module");
-        generateViewData(record); /**Convert View JSON to View Data */
+        generateViewData(record, chosen_module); /**Convert View JSON to View Data */
 
         /**Prepare ListView*/
         mAdaptor = new RecordAdapter(rootView.getContext(),record.getRecordArray());
-        mListView = (ListView)rootView.findViewById(R.id.recordListView);
+        mListView = (ListView)rootView.findViewById(R.id.ViewGroupListView);
         mListView.setAdapter(mAdaptor);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Fragment fragment = new ContentFragment();
+                Fragment fragment = new RecordFragment();
                 Bundle args = new Bundle();
                 View itemView = null;
+
                 /**Store value for passing to fragment*/
                 if (mListener != null) {
                     itemView = mListener.getViewByPosition(position, mListView);
                 }
                 String recordName = ((TextView) itemView.findViewById(R.id.record_name)).getText().toString();
+                String chosen_id = mAdaptor.getChosenItemId(position);
                 args.putString("chosen_record", recordName);
                 args.putString("chosen_module", chosen_module);
+                args.putString("chosen_id", chosen_id);
                 try {
                     args.putString("id", record.getRecordArray().get(position).getString("id"));
                 } catch (JSONException e) {
@@ -80,7 +83,7 @@ public class ViewGroupFragment extends Fragment{
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
 
                 /**Open fragment instead of previous view*/
-                transaction.replace(R.id.content_frame, fragment, "CONTENT_FRAGMENT");
+                transaction.replace(R.id.content_frame, fragment, "RECORD_FRAGMENT");
                 transaction.addToBackStack(null);
                 transaction.commit();
 
@@ -96,8 +99,12 @@ public class ViewGroupFragment extends Fragment{
 
 
 
-    private String generateViewData(RecordM record){
-        final String LEAD_VIEW_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead Name 1\",\"Description\":\"Lead Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead Name 2\",\"Description\":\"Lead Description 2\"}]}";
+    private String generateViewData(RecordM record, String chosen_module){
+        /*
+        Get View JSON String from RestApi
+         */
+
+        final String LEAD_VIEW_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead View 1\",\"Description\":\"Lead View Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead View 2\",\"Description\":\"Lead View Description 2\"}]}";
         try{
             JSONObject leadRecordJSON = new JSONObject(LEAD_VIEW_JSON);
             record.setCurrentPage(leadRecordJSON.getInt("currentPage"));

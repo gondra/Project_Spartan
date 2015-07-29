@@ -15,7 +15,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 import Describe.PrepareForGeneratingObject;
-import GenerateJSON.GenerateJSONUtils;
+import GenerateJSON.JSONUtils;
 import easset.naviapp.EditContentActivity;
 import easset.naviapp.R;
 import model.ContentStructureM;
@@ -29,7 +29,7 @@ public class ContentFragment extends Fragment {
     private String recordName;
     private String chosen_module;
     private String id;
-    private GenerateJSONUtils generate;
+    private JSONUtils generate;
     private int isInitJSON = 0;
     @Nullable
     @Override
@@ -43,7 +43,7 @@ public class ContentFragment extends Fragment {
         /**Preparing data*/
         content = new ContentStructureM();
 
-        generate = new GenerateJSONUtils();
+        generate = new JSONUtils();
         content = generate.generateDescribeFromJSON(chosen_module, content);
         content = generate.generateRecordDataFromJSON(chosen_module, id, content);
         isInitJSON = 1;

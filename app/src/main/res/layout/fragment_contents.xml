@@ -5,11 +5,11 @@
     <ListView
         android:id="@+id/contentListView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
         android:divider="@drawable/divider_line"
-        android:dividerHeight="1dp"
+        android:dividerHeight="1px"
         android:focusable="false"
         android:descendantFocusability="beforeDescendants"/>
 </LinearLayout>

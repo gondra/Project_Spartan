@@ -5,11 +5,11 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.text.InputType;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -25,9 +25,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 
-import Utils.DatePickerDialog;
+import Utils.DatePickerFragment;
 
-public class EditContentAdapter extends BaseAdapter {
+public class EditContentAdapter extends BaseAdapter{
+
     private Context mContext;
     private ArrayList<Object> field;
     private static final String PICK_LIST = "picklist";
@@ -39,6 +40,8 @@ public class EditContentAdapter extends BaseAdapter {
     private static final int TYPE_TEXT_EDIT = 2;
     private static final int TYPE_TEXT_EXPAND = 3;
     private static final int TYPE_MAX_COUNT = TYPE_TEXT_EXPAND + 1;
+    private String dateSet;
+    private TextView tempDateView;
     LayoutInflater inflater;
 
     /**Attribute of each list*/
@@ -124,6 +127,7 @@ public class EditContentAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
+
         return null;
     }
 
@@ -142,8 +146,14 @@ public class EditContentAdapter extends BaseAdapter {
         int result;
         boolean updateable = getUpdateable(position);
         if(!updateable){
-            result = TYPE_TEXT;
+            if(mContext instanceof AddActivity){
+                result = TYPE_TEXT_EDIT;
+            }else{
+                result = TYPE_TEXT;
+            }
+
         }else{
+
             if(getType(position).equalsIgnoreCase(PICK_LIST)){
                 result = TYPE_PICK_LIST;
             }else if(getType(position).equalsIgnoreCase(DATE_TYPE)){
@@ -155,6 +165,7 @@ public class EditContentAdapter extends BaseAdapter {
             else{
                 result = TYPE_TEXT_EDIT;
             }
+
         }
 
 
@@ -168,13 +179,15 @@ public class EditContentAdapter extends BaseAdapter {
         final ViewHolderItem viewHolder;
         ArrayList<String> tempFieldName = null;
         boolean hasData = false;
-        if(data!=null){
+        if(data.size()>0){
             tempFieldName = (ArrayList<String>) data.get("fieldNames");
         }
-
-        if(tempFieldName.contains(this.getName(position) )&& tempFieldName!=null ){
-            hasData = true;
+        if(tempFieldName!=null){
+            if( tempFieldName.contains(this.getName(position)) ){
+                hasData = true;
+            }
         }
+
 
         int viewType = getItemViewType(position);
 
@@ -192,6 +205,9 @@ public class EditContentAdapter extends BaseAdapter {
                     convertView = inflater.inflate(R.layout.list_row_contents_edit, parent, false);
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
                     viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_edit);
+                    if(getType(position).equalsIgnoreCase(INTEGER)){
+                        viewHolder.valueEditView.setInputType(InputType.TYPE_CLASS_NUMBER);
+                    }
                     break;
 
                 case TYPE_TEXT_EXPAND:
@@ -199,11 +215,6 @@ public class EditContentAdapter extends BaseAdapter {
                     viewHolder.labelTextView = (TextView) convertView.findViewById(R.id.label_text);
                     viewHolder.valueEditView = (TextView) convertView.findViewById(R.id.value_view);
                     viewHolder.datePickerView = (DatePicker) convertView.findViewById(R.id.expand_section);
-                    final Calendar c = Calendar.getInstance();
-                    int year = c.get(Calendar.YEAR);
-                    int month = c.get(Calendar.MONTH);
-                    int day = c.get(Calendar.DAY_OF_MONTH);
-                    viewHolder.datePickerView.init(year, month, day, null);
                     break;
 
                 case TYPE_PICK_LIST:
@@ -220,6 +231,7 @@ public class EditContentAdapter extends BaseAdapter {
         }
 
         switch (viewType) {
+            /** text field*/
             case TYPE_TEXT:
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(hasData ){
@@ -234,6 +246,7 @@ public class EditContentAdapter extends BaseAdapter {
                 }
                 break;
 
+            /** Edit text field*/
             case TYPE_TEXT_EDIT:
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(hasData){
@@ -246,9 +259,43 @@ public class EditContentAdapter extends BaseAdapter {
                 }else{
                     viewHolder.valueEditView.setText(getDefaultValue(position));
                 }
+
+                viewHolder.valueEditView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                        return false;
+                    }
+                });
+                viewHolder.valueEditView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View v, boolean hasFocus) {
+                        if (!hasFocus) {
+                            modifiedData.put(getName(position),viewHolder.valueEditView.getText() );
+                        }
+                    }
+                });
                 break;
 
+            /** Expand field*/
             case TYPE_TEXT_EXPAND: //Calendar
+                final Calendar c = Calendar.getInstance();
+                final int year ;
+                final int month ;
+                final int day ;
+                if( data.size()>0){
+                    final String previouseDate = (String)data.get(this.getName(position));
+                    String[] previouseDateTemp = previouseDate.split("-");
+                    day = Integer.parseInt(previouseDateTemp[0]);
+                    month = Integer.parseInt(previouseDateTemp[1]);
+                    year = Integer.parseInt(previouseDateTemp[2]);
+                }else{
+                    year = c.get(Calendar.YEAR);
+                    month = c.get(Calendar.MONTH);
+                    day = c.get(Calendar.DAY_OF_MONTH);
+                }
+
+                //viewHolder.datePickerView.init(year, month, day, null);
+
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(hasData){
                     try{
@@ -265,21 +312,28 @@ public class EditContentAdapter extends BaseAdapter {
                 viewHolder.valueEditView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        int visibility = viewHolder.datePickerView.getVisibility();
+                        /*int visibility = viewHolder.datePickerView.getVisibility();
                         if(visibility == View.VISIBLE){
-                            collapse(viewHolder.datePickerView);
+                            //collapse(viewHolder.datePickerView);
+                            viewHolder.datePickerView.setVisibility(View.GONE);
                         }else if(visibility == View.INVISIBLE){
-                            expand(viewHolder.datePickerView);
+                            //expand(viewHolder.datePickerView);
+                            viewHolder.datePickerView.setVisibility(View.VISIBLE);
                         }else if(visibility == View.GONE){
-                            expand(viewHolder.datePickerView);
+                            //expand(viewHolder.datePickerView);
+                            viewHolder.datePickerView.setVisibility(View.VISIBLE);
                         }else{
 
-                        }
+                        }*/
+                        DialogFragment datePickerFrag = new DatePickerFragment().newInstance(position,year,month,day);
+                        datePickerFrag.show(((Activity)mContext).getFragmentManager(),"Date picker");
+                        tempDateView = viewHolder.valueEditView;
 
                     }
                 });
                 break;
 
+            /** Pick list field*/
             case TYPE_PICK_LIST:
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(hasData){
@@ -313,6 +367,8 @@ public class EditContentAdapter extends BaseAdapter {
                                         int selectedPosition;
                                         selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
                                         viewHolder.pickListBtnView.setText(items[selectedPosition]);
+                                        modifiedData.put(getName(position), items[selectedPosition]);
+
                                     }
                                 })
                                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -333,18 +389,26 @@ public class EditContentAdapter extends BaseAdapter {
         }
 
         //set modified data
-        modifiedData.put(this.getName(position), data.get(data.get(this.getName(position))));
+        if(data.size()>0) {
+            modifiedData.put(this.getName(position), data.get(this.getName(position)));
 
-        //send back to activity
-        if(position == (this.name.size()-1)){
 
-            if(mOnEditContentListener!=null){
-                mOnEditContentListener.transferModifiedData(modifiedData);
+            //send back to activity
+            if (position == (this.name.size() - 1)) {
+
+                if (mOnEditContentListener != null) {
+                    mOnEditContentListener.transferModifiedData(modifiedData);
+                }
             }
         }
         return convertView;
     }
 
+    public HashMap setChangedData(){
+        HashMap modified = new HashMap();
+
+        return modified;
+    }
     //Calendar show/hide
     public static void expand(final View v) {
         v.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -353,7 +417,7 @@ public class EditContentAdapter extends BaseAdapter {
         v.getLayoutParams().height = 0;
         v.setVisibility(View.VISIBLE);
 
-        Animation a = new Animation()
+       /* Animation a = new Animation()
         {
             @Override
             protected void applyTransformation(float interpolatedTime, Transformation t) {
@@ -372,14 +436,14 @@ public class EditContentAdapter extends BaseAdapter {
         // 1dp/ms
         int speed = (int)(targetHeight / v.getContext().getResources().getDisplayMetrics().density);
         a.setDuration(150);
-        v.startAnimation(a);
+        v.startAnimation(a);*/
 
     }
 
     public static void collapse(final View v) {
         final int initialHeight = v.getMeasuredHeight();
-
-        Animation a = new Animation()
+        v.setVisibility(View.GONE);
+       /* Animation a = new Animation()
         {
             @Override
             protected void applyTransformation(float interpolatedTime, Transformation t) {
@@ -400,18 +464,14 @@ public class EditContentAdapter extends BaseAdapter {
         // 1dp/ms
         int speed = (int)(initialHeight / v.getContext().getResources().getDisplayMetrics().density);
         a.setDuration(150);
-        v.startAnimation(a);
+        v.startAnimation(a);*/
     }
 
     //Listener interface
     public interface OnEditContentListener{
-        public void transferModifiedData(HashMap modifiedData);
+        void transferModifiedData(HashMap modifiedData);
     }
     OnEditContentListener mOnEditContentListener;
-
-
-    //send data to other activity
-
 
     public String getFormat(int position) {
         return format.get(position);
@@ -452,4 +512,22 @@ public class EditContentAdapter extends BaseAdapter {
     public String getDefaultValue(int position) {
         return defaultValue.get(position);
     }
+
+    public TextView getTempDateView() {
+        return tempDateView;
+    }
+
+    public void setTempDateView(TextView tempDateView) {
+        this.tempDateView = tempDateView;
+    }
+
+
+    public HashMap getModifiedData() {
+        return modifiedData;
+    }
+
+    public void setModifiedData(HashMap modifiedData) {
+        this.modifiedData = modifiedData;
+    }
+
 }

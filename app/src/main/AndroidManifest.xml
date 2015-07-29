@@ -26,6 +26,12 @@
             android:windowSoftInputMode="adjustPan">
 
         </activity>
+        <activity
+            android:name=".AddActivity"
+            android:label="@string/add_record"
+            android:theme="@style/SpartanEditTheme"
+            android:windowSoftInputMode="adjustPan">
 
+        </activity>
     </application>
 </manifest>

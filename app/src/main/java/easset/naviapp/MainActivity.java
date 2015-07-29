@@ -7,6 +7,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -23,8 +24,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,11 +42,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import Utils.LoadImageFromURI;
 import fragment.ContentFragment;
 import fragment.RecordFragment;
+import fragment.ViewGroupFragment;
+
+import static Utils.LoadImageFromURI.*;
 
 
-public class MainActivity extends ActionBarActivity implements RecordFragment.OnMainFragmentInteractionListener, ContentFragment.OnMainFragmentInteractionListener{
+public class MainActivity extends ActionBarActivity implements RecordFragment.OnMainFragmentInteractionListener, ContentFragment.OnMainFragmentInteractionListener, ViewGroupFragment.OnMainFragmentInteractionListener{
     DrawerLayout mDrawerLayout;
     ListView mListView;
     ActionBarDrawerToggle mBarDrawerToggle;
@@ -54,15 +61,23 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
     ArrayList<HashMap<String, String>> logOnData;
     HashMap<String, String> userData;
     JSONObject userDataJSON, menuListJSON, contentJSON;
-
+    ImageView profilePic;
+    private ProgressBar bar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        bar = (ProgressBar) this.findViewById(R.id.mainprogressBar);
+        /** Test JSON */
+        SharedPreferences sp = getSharedPreferences("JSON", Context.MODE_PRIVATE);
+        String json =  sp.getString("logOnJSON", "");
+        TextView t = (TextView)findViewById(R.id.json);
+        t.setText(json);
         Bundle bundle = getIntent().getExtras();
         String userName = bundle.getString("user");
+        /** Test JSON */
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -136,8 +151,22 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         mBarDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerListener(mBarDrawerToggle);
 
-        /*Button apiBtn = (Button)findViewById(R.id.test);
-        apiBtn.setOnClickListener(new View.OnClickListener() {
+
+        try{
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String uri = "https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xft1/v/t1.0-9/10431553_1503442033268897_2112438036426837056_n.jpg?oh=ebc31a183de8ae3391afbdf890139f15&oe=55D7C08A&__gda__=1440212203_5ffcf60f61b4d92618caf6c3de298135";
+                    profilePic = (ImageView)findViewById(R.id.profilePic);
+                    new LoadImageFromURI(getApplicationContext(), profilePic, bar).execute(uri);
+                }
+            });
+        }catch(Exception e){
+            Log.e("UnsupportedEncodingEx", e.toString());
+            e.printStackTrace();
+        }
+
+       /* apiBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new CallAPI(getApplicationContext()).execute("");
@@ -148,7 +177,8 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
 
     /**Navigation drawer's controller*/
     private void selectMenu(JSONObject contentJSON, int position, ListView mListView){
-        Fragment fragment        = new RecordFragment();
+        //Fragment fragment = new RecordFragment();
+        Fragment fragment = new ViewGroupFragment();
         Bundle args = new Bundle();
 
         /**Store value for passing to fragment*/
@@ -165,7 +195,9 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         /**Open fragment instead of previous view*/
-        transaction.replace(R.id.content_frame, fragment, "RECORD_FRAGMENT");
+        //transaction.replace(R.id.content_frame, fragment, "RECORD_FRAGMENT");
+        profilePic.setVisibility(View.GONE);
+        transaction.replace(R.id.content_frame, fragment, "VIEW_GROUP_FRAGMENT");
         transaction.addToBackStack(null);
         transaction.commit();
 
@@ -227,13 +259,21 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
-        if (f instanceof ContentFragment){
-            inflater.inflate(R.menu.menu_content, menu);
-        }else if(f instanceof RecordFragment){
-            inflater.inflate(R.menu.menu_record, menu);
+        if(f!=null){
+            if (f instanceof ContentFragment){
+                inflater.inflate(R.menu.menu_content, menu);
+            }else if(f instanceof RecordFragment){
+                inflater.inflate(R.menu.menu_record, menu);
+            }else if(f instanceof ViewGroupFragment){
+                inflater.inflate(R.menu.menu_view, menu);
+            }
+            else{
+                inflater.inflate(R.menu.menu_main, menu);
+            }
         }else{
             inflater.inflate(R.menu.menu_main, menu);
         }
+
 
         return true;
     }
@@ -272,6 +312,9 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
             mDrawerLayout.closeDrawer(mListView);
         }else{
             if (getFragmentManager().getBackStackEntryCount() > 0 ){
+                if(getFragmentManager().getBackStackEntryCount() == 1){
+                    profilePic.setVisibility(View.VISIBLE);
+                }
                 getFragmentManager().popBackStack();
             } else {
                 AlertDialog.Builder exitDialog = new AlertDialog.Builder(MainActivity.this,AlertDialog.THEME_DEVICE_DEFAULT_LIGHT);
@@ -296,8 +339,6 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
     }
 
 
-
-
 }
 
 //Fetching JSON from rest api
@@ -305,9 +346,12 @@ class CallAPI extends AsyncTask<String, String, String> {
     //public final static String urlString = "http://192.168.1.151:8080/FreeWriting/login";
     public final static String urlString = "http://www.pantip.com";
     Context mContext;
-    public CallAPI(Context mContext){
+    public CallAPI(Context mContext, String uri){
         this.mContext = mContext;
     }
+
+
+
     @Override
     protected String doInBackground(String... params) {
 

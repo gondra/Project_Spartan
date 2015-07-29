@@ -5,4 +5,5 @@
     <item name="sub_title" type="color">#1976d2</item>
     <item name="fore_background" type="color">#e3f2fd</item>
     <item name="clicked_button" type="color">#0d47a1</item>
+    <item name="divider_small" type="color">#C9C9C9</item>
 </resources>

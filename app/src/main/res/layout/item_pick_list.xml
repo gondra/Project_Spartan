@@ -10,4 +10,4 @@
     android:textAlignment="inherit"
     android:minHeight="30dp"
     android:divider="@android:color/darker_gray"
-    android:dividerHeight="1dp"/>
+    android:dividerHeight="1px"/>

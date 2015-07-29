@@ -11,11 +11,11 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"/>
 
-    <Button
+    <ImageButton android:src="@drawable/accept_btn_event"
         android:background="@color/primary"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:text="SAVE"
+        android:scaleType="centerInside"
         android:id="@+id/save_action_bar_btn"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"

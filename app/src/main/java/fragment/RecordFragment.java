@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -22,6 +25,8 @@ import org.json.JSONObject;
 
 import java.util.Vector;
 
+import easset.naviapp.AddActivity;
+import easset.naviapp.EditContentActivity;
 import easset.naviapp.R;
 import model.RecordM;
 
@@ -32,6 +37,7 @@ public class RecordFragment extends Fragment {
     private RecordAdapter mAdaptor;
     private RecordM record;
     private String chosen_module;
+    private String chosen_id;
     DrawerLayout mDrawerLayout;
 
     public interface OnMainFragmentInteractionListener {
@@ -44,13 +50,14 @@ public class RecordFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_record, container, false);
+        setHasOptionsMenu(true);
         record = new RecordM();
 
         final FragmentManager fragmentManager = getFragmentManager();
-        //
 
         chosen_module = getArguments().getString("chosen_module");
-        generateRecordData(record); /**Convert Record JSON to Record Data */
+        chosen_id = getArguments().getString("chosen_id");
+        generateRecordData(record, chosen_module, chosen_id); /**Convert Record JSON to Record Data */
         mDrawerLayout = (DrawerLayout)rootView.findViewById(R.id.drawer_layout);
 
         /**Prepare ListView*/
@@ -98,8 +105,11 @@ public class RecordFragment extends Fragment {
 
 
 
-    private String generateRecordData(RecordM record){
-        final String LEAD_RECORD_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead Name 1\",\"Description\":\"Lead Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead Name 2\",\"Description\":\"Lead Description 2\"}]}";
+    private String generateRecordData(RecordM record, String chosen_module, String chosen_id){
+        /*
+        Fetching Record JSON String
+         */
+        final String LEAD_RECORD_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead View 1 - Lead Record 1\",\"Description\":\"Lead Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead View 1 - Lead Record 2\",\"Description\":\"Lead Description 2\"}]}";
         try{
             JSONObject leadRecordJSON = new JSONObject(LEAD_RECORD_JSON);
             record.setCurrentPage(leadRecordJSON.getInt("currentPage"));
@@ -135,8 +145,29 @@ public class RecordFragment extends Fragment {
         super.onResume();
         /**Set title*/
         if (mListener != null) {
-            mListener.setTitle(chosen_module,getActivity());
+            mListener.setTitle(chosen_module+" Record",getActivity());
         }
+
+        mAdaptor.notifyDataSetChanged();
+        /*
+        set value of adapter
+        and
+        fetching a new record JSON
+         */
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_add:
+                Intent addIntent = new Intent(getActivity().getApplicationContext(), AddActivity.class);
+                addIntent.putExtra("chosen_module", chosen_module);
+                getActivity().startActivity(addIntent);
+                return true;
+            default:
+                break;
+        }
+        return true;
     }
 
     @Override

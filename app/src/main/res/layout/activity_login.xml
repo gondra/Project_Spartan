@@ -1,63 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:weightSum="1">
+    android:layout_height="match_parent">
 
-    <TextView
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.6"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/login_title"
-        android:textStyle="bold"
-        android:textColor="@color/primary"
-        android:textSize="70sp"
-        android:id="@+id/AppName"
-        android:gravity="center|bottom"/>
+        android:layout_height="match_parent"
+        android:weightSum="1"
+        android:layout_centerInParent="true"
+        >
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:id="@+id/user_form"
-        android:layout_gravity="center_horizontal"
-        android:hint="User name"
-        android:layout_marginLeft="28dp"
-        android:layout_marginRight="28dp"
-        android:layout_marginTop="40dp"
-        android:focusable="true"
-        android:maxLines="1"
-        android:gravity="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.6"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/login_title"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:textSize="70sp"
+            android:id="@+id/AppName"
+            android:gravity="center|bottom"/>
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:textSize="20sp"
-        android:text="@string/login_btn"
-        android:textStyle="bold"
-        android:textColor="@color/primary_text_default_material_dark"
-        android:id="@+id/button_login"
-        android:background="@drawable/button_custom"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginLeft="28dp"
-        android:layout_marginRight="28dp"
-        style="?android:attr/borderlessButtonStyle" />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"
+            android:id="@+id/user_form"
+            android:layout_gravity="center_horizontal"
+            android:hint="User name"
+            android:layout_marginLeft="28dp"
+            android:layout_marginRight="28dp"
+            android:layout_marginTop="40dp"
+            android:focusable="true"
+            android:maxLines="1"
+            android:gravity="center"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.05"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="EAsset Company Limited."
-        android:id="@+id/company"
-        android:gravity="center"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"
+            android:textSize="20sp"
+            android:text="@string/login_btn"
+            android:textStyle="bold"
+            android:textColor="@color/primary_text_default_material_dark"
+            android:id="@+id/button_login"
+            android:background="@drawable/button_custom"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="28dp"
+            android:layout_marginRight="28dp"
+            style="?android:attr/borderlessButtonStyle" />
 
-    <!--
-    android:layout_gravity="center_vertical"
-    android:gravity="center"
-    android:layout_marginBottom="48dp" -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.05"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="EAsset Company Limited."
+            android:id="@+id/company"
+            android:gravity="center"/>
 
-</LinearLayout>
+        <!--
+        android:layout_gravity="center_vertical"
+        android:gravity="center"
+        android:layout_marginBottom="48dp" -->
+
+    </LinearLayout>
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"
+        android:indeterminateDrawable="@drawable/progress" >
+    </ProgressBar>
+</RelativeLayout>
