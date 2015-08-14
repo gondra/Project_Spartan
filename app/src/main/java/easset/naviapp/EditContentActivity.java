@@ -28,6 +28,8 @@ public class EditContentActivity extends ActionBarActivity implements EditConten
     private HashMap modifiedData;
     private String JSONModifiedData = "";
     private JSONUtils jsonUtils;
+    private String describeJSON;
+    private String contentJSON;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +42,13 @@ public class EditContentActivity extends ActionBarActivity implements EditConten
         Intent intent = getIntent();
         String id = intent.getStringExtra("id");
         String chosen_module = intent.getStringExtra("chosen_module");
+        describeJSON = intent.getStringExtra("Describe_JSON");
+        contentJSON = intent.getStringExtra("Record_JSON");
 
         //Fetching JSON data
         JSONUtils generate = new JSONUtils();
-        content = generate.generateDescribeFromJSON(chosen_module, content);
-        content = generate.generateRecordDataFromJSON(chosen_module, id, content);
+        content = generate.generateDescribeFromJSON(chosen_module, content, describeJSON);
+        content = generate.generateRecordDataFromJSON(chosen_module, id, content, contentJSON);
 
         //building listView
         ArrayList<Object> field = content.getField();
@@ -158,6 +162,6 @@ public class EditContentActivity extends ActionBarActivity implements EditConten
 
     @Override
     protected void onStop() {
-
+        super.onStop();
     }
 }

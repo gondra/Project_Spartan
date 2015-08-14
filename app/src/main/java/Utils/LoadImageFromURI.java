@@ -3,6 +3,7 @@ package Utils;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -21,17 +22,35 @@ public class LoadImageFromURI extends AsyncTask<String, String, Drawable > {
         this.imageView = imageView;
         this.bar = bar;
     }
+
+    @Override
+    protected void onPreExecute() {
+        try{
+            bar.setVisibility(View.VISIBLE);
+        }catch(Exception e){
+            Log.e("Loading error", e.getMessage());
+            e.printStackTrace();
+        }
+
+    }
+
     @Override
     protected Drawable doInBackground(String... params) {
 
-        //bar.setVisibility(View.VISIBLE);
+
         Drawable image = LoadImageFromWebOperations(params[0]);
         return image;
     }
 
     protected void onPostExecute(Drawable image) {
-        bar.setVisibility(View.GONE);
-        imageView.setImageDrawable(image);
+        try{
+            bar.setVisibility(View.GONE);
+            imageView.setImageDrawable(image);
+        }catch(Exception e){
+            Log.e("Set image error", e.getMessage());
+            e.printStackTrace();
+        }
+
     }
 
     public Drawable LoadImageFromWebOperations(String url) {

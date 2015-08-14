@@ -24,13 +24,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import Utils.LoadImageFromURI;
@@ -47,20 +46,19 @@ import fragment.ContentFragment;
 import fragment.RecordFragment;
 import fragment.ViewGroupFragment;
 
-import static Utils.LoadImageFromURI.*;
 
 
 public class MainActivity extends ActionBarActivity implements RecordFragment.OnMainFragmentInteractionListener, ContentFragment.OnMainFragmentInteractionListener, ViewGroupFragment.OnMainFragmentInteractionListener{
     DrawerLayout mDrawerLayout;
     ListView mListView;
     ActionBarDrawerToggle mBarDrawerToggle;
-    private ArrayList<String> menuListText;
+    private ArrayList<String> menuListText, myOpenTaskText, todayCalendersText, notificationsText;
+    private ArrayList<JSONObject> menuList, myOpenTask, todayCalenders, notifications;
     SQLiteDatabase mDb;
     Cursor mCursor;
     DBaseHelper dbHelper;
     ArrayList<HashMap<String, String>> logOnData;
-    HashMap<String, String> userData;
-    JSONObject userDataJSON, menuListJSON, contentJSON;
+    String userName, token, tokenExpiryDate;
     ImageView profilePic;
     private ProgressBar bar;
 
@@ -70,50 +68,28 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         setContentView(R.layout.activity_main);
 
         bar = (ProgressBar) this.findViewById(R.id.mainprogressBar);
+
+        //initial value
+        logOnData = new ArrayList<>();
+        menuList = new ArrayList<>();
+        myOpenTask = new ArrayList<>();
+        todayCalenders = new ArrayList<>();
+        notifications = new ArrayList<>();
+
         /** Test JSON */
-        SharedPreferences sp = getSharedPreferences("JSON", Context.MODE_PRIVATE);
-        String json =  sp.getString("logOnJSON", "");
-        TextView t = (TextView)findViewById(R.id.json);
-        t.setText(json);
+        SharedPreferences sp = getSharedPreferences("LOGIN", Context.MODE_PRIVATE);
+        String menuJson =  sp.getString("logOnJSON", "");
         Bundle bundle = getIntent().getExtras();
-        String userName = bundle.getString("user");
+        userName = bundle.getString("user");
         /** Test JSON */
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-        logOnData = new ArrayList<>();
+
 
         /**get menu list to generate list menu*/
-        logOnData = initialMenu(getApplication(), userName);
-
-        if(!logOnData.isEmpty()){
-            userData = logOnData.get(0);
-
-            try{
-                userDataJSON = new JSONObject(userData.get("JSON"));
-
-                /**Convert menu to  ArrayAdapter*/
-                menuListJSON = userDataJSON.getJSONObject("Modules");
-                ArrayList<String> tempMenuList = new ArrayList<>();
-                for(int i=1;i<=menuListJSON.length();i++){
-                    String tmpStr = menuListJSON.getString(Integer.toString(i));
-                    tempMenuList.add(tmpStr);
-
-                }
-                menuListText = tempMenuList;
-
-                /**Get content*/
-                contentJSON = userDataJSON.getJSONObject("Secondary contents");
-
-            }catch(JSONException e){
-                Log.e("JSON convert error" ,e.getMessage());
-            }
-
-        }else{ /**no data or first login*/
-            String[] tmpMenu = new String[]{"Home","View","Edit","About"};
-            menuListText = new ArrayList<>(Arrays.asList(tmpMenu));
-        }
-
+        //logOnData = initialMenu(getApplication(), userName);
+        initMenuWithJSON(menuJson);
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mListView = (ListView)findViewById(R.id.left_drawer);
@@ -124,7 +100,7 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getApplicationContext(), "" + position, Toast.LENGTH_SHORT).show();
                 /**select menu on the left sidebar*/
-                selectMenu(contentJSON, position, mListView);
+                selectMenu(position, mListView);
             }
         });
 
@@ -151,8 +127,6 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
         mBarDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerListener(mBarDrawerToggle);
 
-
-        try{
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -161,22 +135,11 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
                     new LoadImageFromURI(getApplicationContext(), profilePic, bar).execute(uri);
                 }
             });
-        }catch(Exception e){
-            Log.e("UnsupportedEncodingEx", e.toString());
-            e.printStackTrace();
-        }
-
-       /* apiBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new CallAPI(getApplicationContext()).execute("");
-            }
-        });*/
 
     }
 
     /**Navigation drawer's controller*/
-    private void selectMenu(JSONObject contentJSON, int position, ListView mListView){
+    private void selectMenu(int position, ListView mListView){
         //Fragment fragment = new RecordFragment();
         Fragment fragment = new ViewGroupFragment();
         Bundle args = new Bundle();
@@ -229,6 +192,67 @@ public class MainActivity extends ActionBarActivity implements RecordFragment.On
             dbHelper.close();
         }
         return  resultArray;
+    }
+
+    private void initMenuWithJSON(String menuJSON){
+        try{
+            JSONObject userData = new JSONObject(menuJSON);
+            userName = userData.getString("Username");
+            token = userData.getString("Token");
+            tokenExpiryDate = userData.getString("TokenExpiryDate");
+
+            /**Convert menu to  ArrayAdapter*/
+            JSONArray menuListJSONArray = userData.getJSONArray("Modules");
+            JSONObject tempMenuListObject;
+            ArrayList<String> tempMenuList = new ArrayList<>();
+            for(int i=0;i<menuListJSONArray.length();i++){
+                tempMenuListObject = menuListJSONArray.getJSONObject(i);
+                String module = tempMenuListObject.getString("module");
+                String label = tempMenuListObject.getString("label");
+                String labelTH = tempMenuListObject.getString("labelTH");
+                tempMenuList.add(labelTH);
+                menuList.add(tempMenuListObject);
+
+            }
+            menuListText = tempMenuList;
+
+            JSONArray myOpenTaskArray = userData.getJSONArray("My Open Tasks");
+            JSONObject myOpenTaskObject;
+            ArrayList<String> tempMyOpenTask = new ArrayList<>();
+            for(int i=0;i<myOpenTaskArray.length();i++){
+                myOpenTaskObject = myOpenTaskArray.getJSONObject(0);
+                /*String tmpStr = myOpenTaskObject.getString(Integer.toString(i));*/
+                tempMyOpenTask.add(/*tmpStr*/"");
+                myOpenTask.add(myOpenTaskObject);
+
+            }
+            myOpenTaskText = tempMyOpenTask;
+
+            JSONArray todayCalendersArray = userData.getJSONArray("Today's Calendar");
+            JSONObject todayCalendersObject;
+            ArrayList<String> tempTodayCalenders = new ArrayList<>();
+            for(int i=0;i<todayCalendersArray.length();i++){
+                todayCalendersObject = todayCalendersArray.getJSONObject(0);
+                /*String tmpStr = todayCalendersObject.getString(Integer.toString(i));*/
+                tempTodayCalenders.add(/*tmpStr*/"");
+                todayCalenders.add(todayCalendersObject);
+            }
+            todayCalendersText = tempTodayCalenders;
+
+            JSONArray notificationsArray = userData.getJSONArray("Notifications");
+            JSONObject notificationsObject ;
+            ArrayList<String> tempNotifications = new ArrayList<>();
+            for(int i=0;i<notificationsArray.length();i++){
+                notificationsObject = notificationsArray.getJSONObject(0);
+                /*String tmpStr = notificationsObject.getString(Integer.toString(i));*/
+                tempNotifications.add(/*tmpStr*/"");
+                notifications.add(notificationsObject);
+            }
+            notificationsText = tempNotifications;
+
+        }catch(JSONException e){
+            Log.e("JSON convert error" ,e.getMessage());
+        }
     }
 
 

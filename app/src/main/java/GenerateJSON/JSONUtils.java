@@ -1,132 +1,67 @@
 package GenerateJSON;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
-import org.apache.http.client.ClientProtocolException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Vector;
 
-import easset.naviapp.LoginActivity;
-import easset.naviapp.MainActivity;
-import easset.naviapp.R;
 import model.ContentStructureM;
+import model.RecordM;
 
-public class JSONUtils extends AsyncTask<String, String, String>{
-    JSONUtils utils;
-    Context mContext;
-    View view;
-    private ProgressBar bar;
+public class JSONUtils{
 
-    public JSONUtils(){
+    public String generateViewData(RecordM record, String viewJSON){
 
-    }
-
-    public JSONUtils(Context mContext, View view, ProgressBar bar){
-        this.mContext = mContext;
-        this.view = view;
-        this.bar = bar;
-    }
-
-    @Override
-    protected String doInBackground(String... params) {
-        String responeJSON = "";
+        String LEAD_VIEW_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead View 1\",\"Description\":\"Lead View Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead View 2\",\"Description\":\"Lead View Description 2\"}]}";
         try{
-                responeJSON = fetchingLogOnJSON(params[0]);
-                bar.setVisibility(View.VISIBLE);
-
-        }catch(Exception e){
-
-        }
-        return responeJSON;
-    }
-
-    @Override
-    protected void onProgressUpdate(String... values) {
-
-    }
-
-    @Override
-    protected void onPostExecute(String JSONResult) {
-        bar.setVisibility(View.GONE);
-        SharedPreferences sp = mContext.getSharedPreferences("JSON", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("logOnJSON", JSONResult);
-        boolean valid = editor.commit();
-    }
-
-
-    /**All method section*/
-    public void updateContent(String JSON){
-        /*
-        send JSON to server
-         */
-    }
-
-    public String fetchingLogOnJSON(String uri){
-        InputStream in = null;
-        String result= "";
-        try {
-            //InputStream is = (InputStream) new URL(uri).getContent();
-            URL url = new URL(uri);
-            URLConnection urlConnection = url.openConnection();
-            in = new BufferedInputStream(urlConnection.getInputStream());
-
-        } catch (UnsupportedEncodingException e1) {
-            Log.e("UnsupportedEncodingEx", e1.toString());
-            e1.printStackTrace();
-        } catch (ClientProtocolException e2) {
-            Log.e("ClientProtocolException", e2.toString());
-            e2.printStackTrace();
-        } catch (IllegalStateException e3) {
-            Log.e("IllegalStateException", e3.toString());
-            e3.printStackTrace();
-        } catch (IOException e4) {
-            Log.e("IOException", e4.toString());
-            e4.printStackTrace();
-        }
-
-        // Convert response to string using String Builder
-        try {
-            StringBuilder sBuilder = new StringBuilder();
-            BufferedReader bReader = new BufferedReader(new InputStreamReader(in, "utf-8"),8);
-            String line;
-            while((line = bReader.readLine()) != null){
-                sBuilder.append(line + "\n");
+            JSONObject leadRecordJSON = new JSONObject(viewJSON);
+            record.setCurrentPage(leadRecordJSON.getInt("currentPage"));
+            record.setRowPerPage(leadRecordJSON.getInt("rowPerPage"));
+            record.setTotalPage(leadRecordJSON.getInt("totalPage"));
+            JSONArray tmpArray = leadRecordJSON.getJSONArray("records");
+            Vector<JSONObject> recordVec = new Vector<>();
+            for(int i=0;i<tmpArray.length();i++){
+                recordVec.add(i, (JSONObject) tmpArray.get(i));
             }
-
-            in.close();
-            result = sBuilder.toString();
-        }catch(Exception e){
-            Log.e("StringBuilding", e.toString());
+            record.setRecordArray(recordVec);
         }
-        return result;
+        catch(JSONException e){
+            Log.e("convert view JSON : ", e.getMessage());
+        }
+        return LEAD_VIEW_JSON;
     }
 
 
+    public String generateRecordData(RecordM record, String jsonResult){
+        /*
+        Fetching Record JSON String
+         */
+        final String LEAD_RECORD_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead View 1 - Lead Record 1\",\"Description\":\"Lead Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead View 1 - Lead Record 2\",\"Description\":\"Lead Description 2\"}]}";
+        try{
+            JSONObject leadRecordJSON = new JSONObject(jsonResult);
+            record.setCurrentPage(leadRecordJSON.getInt("currentPage"));
+            record.setRowPerPage(leadRecordJSON.getInt("rowPerPage"));
+            record.setTotalPage(leadRecordJSON.getInt("totalPage"));
+            JSONArray tmpArray = leadRecordJSON.getJSONArray("records");
+            Vector<JSONObject> recordVec = new Vector<>();
+            for(int i=0;i<tmpArray.length();i++){
+                recordVec.add(i, (JSONObject) tmpArray.get(i));
+            }
+            record.setRecordArray(recordVec);
+        }
+        catch(JSONException e){
+            Log.e("convert record JSON : ",e.getMessage());
+        }
+        return LEAD_RECORD_JSON;
+    }
 
-    public ContentStructureM generateDescribeFromJSON(String chosen_module, ContentStructureM content){
+    public ContentStructureM generateDescribeFromJSON(String chosen_module, ContentStructureM content, String describeJSON){
         /*
             Search describe by chosen_module value
         */
@@ -181,7 +116,7 @@ public class JSONUtils extends AsyncTask<String, String, String>{
         return content;
     }
 
-    public ContentStructureM generateRecordDataFromJSON(String chosen_module, String id, ContentStructureM content){
+    public ContentStructureM generateRecordDataFromJSON(String chosen_module, String id, ContentStructureM content, String contetnJSON){
         /*
             Search record data by id value
         */
@@ -259,7 +194,9 @@ public class JSONUtils extends AsyncTask<String, String, String>{
         return  JSON.toString();
     }
 
+    public void updateContent(String jsonModifiedData) {
 
-
-
+    }
 }
+
+

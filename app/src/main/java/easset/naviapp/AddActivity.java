@@ -8,24 +8,32 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
+import GenerateJSON.FetchJSONForActivity;
+import GenerateJSON.FetchJSONForFragment;
 import GenerateJSON.JSONUtils;
 import Utils.DatePickerFragment;
+import fragment.ContentFragment;
 import model.ContentStructureM;
 
-public class AddActivity extends ActionBarActivity implements EditContentAdapter.OnEditContentListener,  DatePickerFragment.onDateChangeListener{
+public class AddActivity extends ActionBarActivity implements EditContentAdapter.OnEditContentListener,  DatePickerFragment.onDateChangeListener, FetchJSONForActivity.AsyncResponse{
     private ListView mListView;
     private EditContentAdapter mAdaptor;
     private HashMap modifiedData;
     private String JSONModifiedData = "";
+    private ProgressBar bar;
+    private String describeJSON;
+    private JSONUtils generate;
+    ContentStructureM content;
+    String chosen_module;
+    String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,12 +44,13 @@ public class AddActivity extends ActionBarActivity implements EditContentAdapter
         ActionBar ab = getSupportActionBar();
         View customView = li.inflate(R.layout.add_content_action_bar, null);
         ab.setCustomView(customView);
+        bar = (ProgressBar)findViewById(R.id.addProgressBar);
 
         ImageButton cancelBtn = (ImageButton) customView.findViewById(R.id.cancel_action_bar_btn);
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
+                cancelEditDialog();
             }
         });
 
@@ -49,21 +58,35 @@ public class AddActivity extends ActionBarActivity implements EditContentAdapter
         acceptBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "" + modifiedData.size(), Toast.LENGTH_SHORT).show();
                 modifiedData = mAdaptor.getModifiedData();
-                buildJSONString(modifiedData);
-                updateContent();
-                finish();
+                if(modifiedData!=null && modifiedData.size()>0){
+                    Toast.makeText(getApplicationContext(), "" + modifiedData.size(), Toast.LENGTH_SHORT).show();
+                    //modifiedData = mAdaptor.getModifiedData();
+                    buildJSONString(modifiedData);
+                    updateContent();
+                    finish();
+                }else{
+                    Toast.makeText(getApplicationContext(), "Please fill in all input fields.", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
-        ContentStructureM content = new ContentStructureM();
+        content = new ContentStructureM();
         Intent intent = getIntent();
-        String id = intent.getStringExtra("id");
-        String chosen_module = intent.getStringExtra("chosen_module");
+        id = intent.getStringExtra("id");
+        chosen_module = intent.getStringExtra("chosen_module");
 
+        try{
+            // fetching describe
+            new FetchJSONForActivity(AddActivity.this, getApplicationContext(), bar).execute("http://192.168.1.151:8055/spartan/leadDescribe.js?chosen_module="+chosen_module);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        generate = new JSONUtils();
         //Fetching JSON data
-        JSONUtils generate = new JSONUtils(this,null,null);
+        /*JSONUtils generate = new JSONUtils();
         content = generate.generateDescribeFromJSON(chosen_module, content);
 
         //building listView
@@ -85,7 +108,11 @@ public class AddActivity extends ActionBarActivity implements EditContentAdapter
 
                 }
             }
-        });
+        });*/
+    }
+
+    public void getDataFromBundle(){
+
     }
 
     @Override
@@ -149,7 +176,15 @@ public class AddActivity extends ActionBarActivity implements EditContentAdapter
         dateTextView.setText(changedDate);
 
         modifiedData = mAdaptor.getModifiedData();
-        modifiedData.put(mAdaptor.getName(listPosition),changedDate );
+        modifiedData.put(mAdaptor.getName(listPosition), changedDate);
         mAdaptor.setModifiedData(modifiedData);
+    }
+
+    @Override
+    public void processFinish(String jsonOutput) {
+        describeJSON = jsonOutput;
+        content = generate.generateDescribeFromJSON(chosen_module, content, describeJSON);
+        mAdaptor.setItemList(content.getField(), content.getData());
+        mAdaptor.notifyDataSetChanged();
     }
 }

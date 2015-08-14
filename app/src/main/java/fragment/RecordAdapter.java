@@ -9,21 +9,19 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Vector;
 
 import easset.naviapp.R;
 
-/**
- * Created by easset-01 on 7/3/2015.
- */
 public class RecordAdapter extends BaseAdapter {
     Context mContext;
     Vector<JSONObject> recordVector;
+    private ArrayList<JSONObject> arraylist;
 
     private ArrayList<String> ids;
     private ArrayList<String> names;
@@ -40,13 +38,16 @@ public class RecordAdapter extends BaseAdapter {
     public RecordAdapter(Context mContext, Vector<JSONObject> recordVector){
         this.mContext = mContext;
         this.recordVector = recordVector;
+        this.arraylist = new ArrayList(recordVector);
+
         this.ids = new ArrayList<>();
         this.names = new ArrayList<>();
         this.description = new ArrayList<>();
+
         populateDataFromJSON(recordVector);
     }
 
-    private void populateDataFromJSON(Vector<JSONObject> fieldsVector){
+    public void populateDataFromJSON(Vector<JSONObject> fieldsVector){
         try{
             for(int i=0;i<fieldsVector.size();i++)
             {
@@ -59,7 +60,7 @@ public class RecordAdapter extends BaseAdapter {
         }catch(JSONException jsonE){
             Log.e("Populate data failed! ",jsonE.getMessage());
         }
-
+        notifyDataSetChanged();
     }
 
     @Override
@@ -75,6 +76,12 @@ public class RecordAdapter extends BaseAdapter {
     @Override
     public long getItemId(int position) {
         return 0;
+    }
+
+    public void setItemList(Vector<JSONObject> recordVector) {
+        this.recordVector = recordVector;
+        this.arraylist = new ArrayList(this.recordVector);
+        populateDataFromJSON(this.recordVector);
     }
 
     @Override
@@ -108,5 +115,36 @@ public class RecordAdapter extends BaseAdapter {
 
     public String getChosenItemId(int position) {
         return this.ids.get(position);
+    }
+
+    // Filter Class
+    public void filter(String charText) {
+        charText = charText.toLowerCase(Locale.getDefault());
+        recordVector.clear();
+        names.clear();
+        description.clear();
+        if (charText.length() == 0) {
+            recordVector.addAll(arraylist);
+            populateDataFromJSON(recordVector);
+        }
+        else
+        {
+            try{
+                for (JSONObject record : arraylist)
+                {
+                    String recordNameTemp = record.getString("Name").toLowerCase(Locale.getDefault());
+                    if (recordNameTemp.contains(charText))
+                    {
+                        recordVector.add(record);
+                        names.add(record.getString("Name"));
+                        description.add(record.getString("Description"));
+                    }
+                }
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+
+        }
+        notifyDataSetChanged();
     }
 }

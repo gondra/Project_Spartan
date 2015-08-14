@@ -12,4 +12,16 @@
         android:divider="@drawable/divider_line"
         android:footerDividersEnabled="true"
         android:dividerHeight="1px"/>
+
+    <ProgressBar
+        android:id="@+id/viewProgressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateDrawable="@drawable/progress"
+        android:indeterminate="false"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:visibility="invisible">
+    </ProgressBar>
 </RelativeLayout>

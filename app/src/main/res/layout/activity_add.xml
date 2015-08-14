@@ -11,4 +11,16 @@
         android:descendantFocusability="beforeDescendants"
         android:focusable="false"
         android:background="@android:color/white"/>
+
+    <ProgressBar
+        android:id="@+id/addProgressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateDrawable="@drawable/progress"
+        android:indeterminate="false"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:visibility="invisible">
+    </ProgressBar>
 </RelativeLayout>

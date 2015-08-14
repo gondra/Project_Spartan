@@ -8,11 +8,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.AndroidCharacter;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.client.ClientProtocolException;
@@ -25,56 +30,87 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Connection;
 import java.sql.SQLException;
 import GenerateJSON.JSONUtils;
 
 
 public class LoginActivity extends Activity{
     private EditText mUser;
+    private EditText mPass;
     private Bundle mDataBundle;
     private Button btnLogin;
     private String userName;
-    private ProgressBar bar;
-
+    private RelativeLayout bar;
+    private RelativeLayout form;
+    private CheckBox rememberMe;
+    private SharedPreferences sp;
+    SharedPreferences.Editor editorAcc;
+    private TextView alertTxt;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        bar = (ProgressBar) this.findViewById(R.id.progressBar);
-        mDataBundle = new Bundle();
+        sp = getSharedPreferences("LOGIN", Context.MODE_PRIVATE);
+        bar = (RelativeLayout) this.findViewById(R.id.progressSection);
+        form = (RelativeLayout) this.findViewById(R.id.formSection);
+        rememberMe = (CheckBox) findViewById(R.id.rememberUser);
+        alertTxt = (TextView)findViewById(R.id.error_text);
         mUser = (EditText)findViewById(R.id.user_form);
-        mUser.setSingleLine(true);
+        mPass = (EditText) findViewById(R.id.password_form);
         btnLogin = (Button)findViewById(R.id.button_login);
-        mUser.setText("start");
+        mDataBundle = new Bundle();
+        String isChecked = sp.getString("CHECK_REMEMBER", "N");
+        rememberMe.setChecked(isChecked.equalsIgnoreCase("Y")?true:false);
+        mUser.setSingleLine(true);
+        String user = sp.getString("REMEMBER_ME_USER", "");
+        mUser.setText(user);
+        mPass.setSingleLine(true);
+        mUser.setSelection(mUser.getText().length());
+
+        rememberMe.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            }
+        });
+
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 userName = mUser.getText().toString();
-                //Test
+
                 if (userName != null
-                        && userName != ""
                         && !userName.equalsIgnoreCase("")
-                        && userName.trim().length() != 0) {
+                        && userName.trim().length()> 0) {
                     mDataBundle.putString("user", userName);
                     Intent mainIntent = new Intent(getApplicationContext(), MainActivity.class);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    mainIntent.putExtras(mDataBundle);
                     try {
-                        if (authentication(getApplication(), userName)) {
-                            String pass = "";
-                            mainIntent.putExtras(mDataBundle);
-                            pass = logOn(mainIntent);
-
-                        }
+                        /*if (authentication(getApplication(), userName)) {
+                        }*/
+                        String pass = "";
+                        logOn(mainIntent, userName);
                     } catch (Exception e) {
                         Log.e("User authentication", e.getMessage());
                     }
 
                 }else{
-                    Toast.makeText(getApplication(),"Please input your user name.",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplication(),"Please input your user name.",Toast.LENGTH_SHORT).show();
+                    alertTxt.setText("• Please input your user name.");
                 }
             }
         });
+    }
+
+    private void logOn(Intent mainIntent, String userName) throws Exception{
+        String[] userPass = {mUser.getText().toString(),mPass.getText().toString(), rememberMe.isChecked()?"Y":"N"};
+        try{
+            new LogIn(LoginActivity.this, getApplicationContext(), bar, form, mainIntent, userPass, alertTxt).execute(getResources().getString(R.string.login_uri));
+        }catch(Exception e){
+            alertTxt.setText("• Something has problem!");
+        }
     }
 
     private boolean authentication(Context mContext, String userName) throws SQLException{
@@ -95,30 +131,41 @@ public class LoginActivity extends Activity{
 
         return valid;
     }
-
-    private String logOn(Intent mainIntent){
-        new LogIn(getApplicationContext(), bar, mainIntent).execute("http://api.flickr.com/services/feeds/photos_public.gne?callback=jsonp1438171694408&_=1438171696224&id=29080075@N02&lang=en-us&format=json&jsoncallback=jsonp1438171694408");
-        SharedPreferences sp = getSharedPreferences("JSON", Context.MODE_PRIVATE);
-        return sp.getString("logOnJSON", "");
-    }
 }
 
 class LogIn extends AsyncTask<String, String, String> {
     JSONUtils utils;
     View view;
     Context mContext;
-    ProgressBar bar;
+    RelativeLayout bar;
+    RelativeLayout form;
     Intent mainIntent;
+    Activity loginActivity;
+    String[] userPass;
+    String errorMsg;
+    TextView alertTxt;
+    SharedPreferences sp;
+    SharedPreferences.Editor editor;
 
-    public LogIn(Context mContext, ProgressBar bar, Intent mainIntent) {
+    public LogIn(Activity loginActivity, Context mContext, RelativeLayout bar, RelativeLayout form, Intent mainIntent, String[] userPass, TextView alertTxt) {
+        super();
         this.mContext = mContext.getApplicationContext();
         this.bar = bar;
+        this.form = form;
         this.mainIntent = mainIntent;
+        this.loginActivity=loginActivity;
+        this.userPass = userPass;
+        this.errorMsg = "";
+        this.alertTxt = alertTxt;
+        sp = mContext.getSharedPreferences("LOGIN", Context.MODE_PRIVATE);
+        editor = sp.edit();
     }
+
 
     @Override
     protected void onPreExecute() {
         bar.setVisibility(View.VISIBLE);
+        form.setVisibility(View.GONE);
     }
 
     @Override
@@ -127,7 +174,7 @@ class LogIn extends AsyncTask<String, String, String> {
         try{
             responeJSON = fetchingLogOnJSON(params[0]);
         }catch(Exception e){
-
+            errorMsg = "• Connection error";
         }
         return responeJSON;
     }
@@ -135,43 +182,53 @@ class LogIn extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String JSONResult) {
         bar.setVisibility(View.GONE);
-        SharedPreferences sp = mContext.getSharedPreferences("JSON", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("logOnJSON", JSONResult);
-        boolean valid = editor.commit();
+        form.setVisibility(View.VISIBLE);
+        if(!JSONResult.equalsIgnoreCase("") && JSONResult.length()>0){
 
+            editor.putString("logOnJSON", JSONResult);
+            editor.putString("REMEMBER_ME_USER", userPass[0]);
+            editor.putString("REMEMBER_ME_PASS", userPass[1]);
+            editor.putString("CHECK_REMEMBER", userPass[2]);
+            editor.commit();
 
-        mContext.startActivity(mainIntent);
+            mContext.startActivity(mainIntent);
+            loginActivity.finish();
+        }
+
+        if(!errorMsg.equalsIgnoreCase("")){
+            alertTxt.setText(errorMsg);
+        }
+
     }
 
-    /**All method section*/
-    public void updateContent(String JSON){
-        /*
-        send JSON to server
-         */
-    }
-
-    public String fetchingLogOnJSON(String uri){
+    public String fetchingLogOnJSON(String uri) throws Exception {
         InputStream in = null;
         String result= "";
+        URLConnection urlConnection;
         try {
             //InputStream is = (InputStream) new URL(uri).getContent();
             URL url = new URL(uri);
-            URLConnection urlConnection = url.openConnection();
+            urlConnection = url.openConnection();
+            urlConnection.setConnectTimeout(30000);
+            urlConnection.connect();
             in = new BufferedInputStream(urlConnection.getInputStream());
 
         } catch (UnsupportedEncodingException e1) {
             Log.e("UnsupportedEncodingEx", e1.toString());
             e1.printStackTrace();
+            throw e1;
         } catch (ClientProtocolException e2) {
             Log.e("ClientProtocolException", e2.toString());
             e2.printStackTrace();
+            throw e2;
         } catch (IllegalStateException e3) {
             Log.e("IllegalStateException", e3.toString());
             e3.printStackTrace();
+            throw e3;
         } catch (IOException e4) {
             Log.e("IOException", e4.toString());
             e4.printStackTrace();
+            throw e4;
         }
 
         // Convert response to string using String Builder
@@ -187,7 +244,9 @@ class LogIn extends AsyncTask<String, String, String> {
             result = sBuilder.toString();
         }catch(Exception e){
             Log.e("StringBuilding", e.toString());
+            throw e;
         }
+
         return result;
     }
 }

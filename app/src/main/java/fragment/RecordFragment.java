@@ -8,43 +8,54 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.Vector;
+import java.util.Locale;
 
+import GenerateJSON.FetchJSONForFragment;
+import GenerateJSON.JSONUtils;
 import easset.naviapp.AddActivity;
-import easset.naviapp.EditContentActivity;
 import easset.naviapp.R;
 import model.RecordM;
 
-public class RecordFragment extends Fragment {
+public class RecordFragment extends Fragment implements FetchJSONForFragment.AsyncResponse{
 
     private OnMainFragmentInteractionListener mListener;
+    private FetchJSONForFragment.AsyncResponse mAsyncResponse;
     private ListView mListView;
     private RecordAdapter mAdaptor;
     private RecordM record;
     private String chosen_module;
     private String chosen_id;
+    EditText searchBox;
     DrawerLayout mDrawerLayout;
+    private ProgressBar bar;
+    private JSONUtils jsonUtils;
 
     public interface OnMainFragmentInteractionListener {
         void setTitle(String title,Activity childActivity);
         View getViewByPosition(int position, ListView mListView);
     }
 
+    @Override
+    public void processFinish(String jsonResult) {
+        jsonUtils.generateRecordData(record, jsonResult);
+        mAdaptor.setItemList(record.getRecordArray());
+        mAdaptor.notifyDataSetChanged();
+    }
 
     @Nullable
     @Override
@@ -52,12 +63,17 @@ public class RecordFragment extends Fragment {
         final View rootView = inflater.inflate(R.layout.fragment_record, container, false);
         setHasOptionsMenu(true);
         record = new RecordM();
+        jsonUtils = new JSONUtils();
+        mAsyncResponse = this;
+        searchBox = (EditText)rootView.findViewById(R.id.search_record);
+        searchBox.setVisibility(View.GONE); //default state
+        bar = (ProgressBar)rootView.findViewById(R.id.recordProgressBar);
 
         final FragmentManager fragmentManager = getFragmentManager();
 
         chosen_module = getArguments().getString("chosen_module");
         chosen_id = getArguments().getString("chosen_id");
-        generateRecordData(record, chosen_module, chosen_id); /**Convert Record JSON to Record Data */
+        //generateRecordData(record, chosen_module, chosen_id); /**Convert Record JSON to Record Data */
         mDrawerLayout = (DrawerLayout)rootView.findViewById(R.id.drawer_layout);
 
         /**Prepare ListView*/
@@ -99,33 +115,37 @@ public class RecordFragment extends Fragment {
             }
         });
 
-        return rootView;
-    }
+        // Capture Text in EditText
+        searchBox.addTextChangedListener(new TextWatcher() {
 
-
-
-
-    private String generateRecordData(RecordM record, String chosen_module, String chosen_id){
-        /*
-        Fetching Record JSON String
-         */
-        final String LEAD_RECORD_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead View 1 - Lead Record 1\",\"Description\":\"Lead Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead View 1 - Lead Record 2\",\"Description\":\"Lead Description 2\"}]}";
-        try{
-            JSONObject leadRecordJSON = new JSONObject(LEAD_RECORD_JSON);
-            record.setCurrentPage(leadRecordJSON.getInt("currentPage"));
-            record.setRowPerPage(leadRecordJSON.getInt("rowPerPage"));
-            record.setTotalPage(leadRecordJSON.getInt("totalPage"));
-            JSONArray tmpArray = leadRecordJSON.getJSONArray("records");
-            Vector<JSONObject> recordVec = new Vector<>();
-            for(int i=0;i<tmpArray.length();i++){
-                recordVec.add(i, (JSONObject) tmpArray.get(i));
+            @Override
+            public void afterTextChanged(Editable arg0) {
+                // TODO Auto-generated method stub
+                String text = searchBox.getText().toString().toLowerCase(Locale.getDefault());
+                mAdaptor.filter(text);
             }
-            record.setRecordArray(recordVec);
+
+            @Override
+            public void beforeTextChanged(CharSequence arg0, int arg1,
+                                          int arg2, int arg3) {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void onTextChanged(CharSequence arg0, int arg1, int arg2,
+                                      int arg3) {
+                // TODO Auto-generated method stub
+            }
+        });
+
+        try{
+            new FetchJSONForFragment(RecordFragment.this, getActivity().getApplicationContext(), bar).execute("http://192.168.1.151:8055/spartan/record.js?chosen_module="+chosen_module+"?id="+chosen_id);
+        }catch(Exception e){
+            e.printStackTrace();
         }
-        catch(JSONException e){
-            Log.e("convert record JSON : ",e.getMessage());
-        }
-      return LEAD_RECORD_JSON;
+
+
+        return rootView;
     }
 
     @Override
@@ -164,6 +184,14 @@ public class RecordFragment extends Fragment {
                 addIntent.putExtra("chosen_module", chosen_module);
                 getActivity().startActivity(addIntent);
                 return true;
+            case R.id.action_search:
+                if(searchBox.getVisibility() == View.VISIBLE){
+                    searchBox.setVisibility(View.GONE);
+                }else{
+                    searchBox.setVisibility(View.VISIBLE);
+                }
+
+
             default:
                 break;
         }

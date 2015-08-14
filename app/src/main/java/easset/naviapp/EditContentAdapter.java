@@ -49,13 +49,17 @@ public class EditContentAdapter extends BaseAdapter{
     private ArrayList<Boolean> updateable;
     private ArrayList<Integer> length;
     private ArrayList<ArrayList<String>> listValue;
-    private HashMap modifiedData;
+
     private HashMap data ;
 
+    //For Add & Edit value
+    private HashMap beforeSaveValues;
+    private HashMap modifiedData;
     public EditContentAdapter(Context mContext, ArrayList<Object> field, HashMap data){
 
         inflater = ((Activity) mContext).getLayoutInflater();
         this.modifiedData = new HashMap();
+        this.beforeSaveValues = new HashMap();
         this.data = data;
         this.mContext = mContext;
         this.field = field;
@@ -78,7 +82,6 @@ public class EditContentAdapter extends BaseAdapter{
             throw new ClassCastException(this.mContext.toString()
                     + " must implement OnEditContentListener");
         }
-
     }
 
     private void setValue(ArrayList<Object> field){
@@ -250,20 +253,23 @@ public class EditContentAdapter extends BaseAdapter{
             case TYPE_TEXT_EDIT:
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(hasData){
+
                     try{
                         viewHolder.valueEditView.setText((String)data.get(this.getName(position)));
                     }catch(Exception e){
                         viewHolder.valueEditView.setText(String.valueOf(data.get(this.getName(position))));
                     }
-
+                    beforeSaveValues.put(getName(position),viewHolder.valueEditView.getText());
                 }else{
                     viewHolder.valueEditView.setText(getDefaultValue(position));
+                    beforeSaveValues.put(getName(position), viewHolder.valueEditView.getText());
                 }
 
                 viewHolder.valueEditView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
                     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                        return false;
+                        modifiedData.put(getName(position),viewHolder.valueEditView.getText() );
+                        return true;
                     }
                 });
                 viewHolder.valueEditView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -303,9 +309,10 @@ public class EditContentAdapter extends BaseAdapter{
                     }catch(Exception e){
                         viewHolder.valueEditView.setText(String.valueOf(data.get(this.getName(position))));
                     }
-
+                    beforeSaveValues.put(getName(position),viewHolder.valueEditView.getText());
                 }else{
                     viewHolder.valueEditView.setText(getDefaultValue(position));
+                    beforeSaveValues.put(getName(position), viewHolder.valueEditView.getText());
                 }
 
                 viewHolder.datePickerView.setVisibility(View.GONE);
@@ -338,8 +345,10 @@ public class EditContentAdapter extends BaseAdapter{
                 viewHolder.labelTextView.setText(this.getLabel(position));
                 if(hasData){
                     viewHolder.pickListBtnView.setText((String)data.get(this.getName(position)));
+                    beforeSaveValues.put(getName(position), viewHolder.pickListBtnView.getText());
                 }else{
                     viewHolder.pickListBtnView.setText(this.getDefaultValue(position));
+                    beforeSaveValues.put(getName(position), viewHolder.pickListBtnView.getText());
                 }
                 viewHolder.pickListBtnView.setOnClickListener(new View.OnClickListener() {
                     int biggerWhere;
@@ -389,7 +398,7 @@ public class EditContentAdapter extends BaseAdapter{
         }
 
         //set modified data
-        if(data.size()>0) {
+        /*if(data.size()>0) {
             modifiedData.put(this.getName(position), data.get(this.getName(position)));
 
 
@@ -400,7 +409,7 @@ public class EditContentAdapter extends BaseAdapter{
                     mOnEditContentListener.transferModifiedData(modifiedData);
                 }
             }
-        }
+        }*/
         return convertView;
     }
 
@@ -523,11 +532,25 @@ public class EditContentAdapter extends BaseAdapter{
 
 
     public HashMap getModifiedData() {
-        return modifiedData;
+        HashMap finalData = new HashMap();
+        HashMap tempResult;
+        if(modifiedData!=null && modifiedData.size()>0){
+            finalData.putAll(beforeSaveValues);
+            finalData.putAll(modifiedData);
+            tempResult =  finalData;
+        }else{
+            tempResult =  modifiedData;
+        }
+
+        return tempResult;
     }
 
     public void setModifiedData(HashMap modifiedData) {
         this.modifiedData = modifiedData;
     }
-
+    public void setItemList(ArrayList<Object> field, HashMap data) {
+        this.field = field;
+        this.data = data;
+        setValue(field);
+    }
 }

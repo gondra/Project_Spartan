@@ -13,43 +13,52 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.Vector;
-
+import GenerateJSON.FetchJSONForFragment;
+import GenerateJSON.JSONUtils;
 import easset.naviapp.R;
 import model.RecordM;
 
-public class ViewGroupFragment extends Fragment{
+public class ViewGroupFragment extends Fragment implements FetchJSONForFragment.AsyncResponse{
 
     private OnMainFragmentInteractionListener mListener;
+    private FetchJSONForFragment.AsyncResponse mAsyncResponse;
     private ListView mListView;
     private RecordAdapter mAdaptor;
     private RecordM record;
     private String chosen_module;
+    private ProgressBar bar;
+    private String viewJSON;
     DrawerLayout mDrawerLayout;
+    private JSONUtils jsonUtils;
+
+    @Override
+    public void processFinish(String jsonResult) {
+        this.viewJSON = jsonResult;
+        jsonUtils.generateViewData(record, viewJSON);
+        mAdaptor.setItemList(record.getRecordArray());
+        mAdaptor.notifyDataSetChanged();
+    }
 
     public interface OnMainFragmentInteractionListener {
         void setTitle(String title,Activity childActivity);
         View getViewByPosition(int position, ListView mListView);
     }
 
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_view, container, false);
         record = new RecordM();
-
-        final FragmentManager fragmentManager = getFragmentManager();
-        //
-
+        jsonUtils = new JSONUtils();
+        mAsyncResponse = this;
         chosen_module = getArguments().getString("chosen_module");
-        generateViewData(record, chosen_module); /**Convert View JSON to View Data */
+        final FragmentManager fragmentManager = getFragmentManager();
+        bar = (ProgressBar)rootView.findViewById(R.id.viewProgressBar);
 
         /**Prepare ListView*/
         mAdaptor = new RecordAdapter(rootView.getContext(),record.getRecordArray());
@@ -93,34 +102,13 @@ public class ViewGroupFragment extends Fragment{
             }
         });
 
-        return rootView;
-    }
-
-
-
-
-    private String generateViewData(RecordM record, String chosen_module){
-        /*
-        Get View JSON String from RestApi
-         */
-
-        final String LEAD_VIEW_JSON = "{\"currentPage\":1,\"rowPerPage\":10,\"totalPage\":10,\"records\":[{\"id\":\"962E7DD1-8467-43A2-8803-7DBD52741E41\",\"Name\":\"Lead View 1\",\"Description\":\"Lead View Description 1\"},{\"id\":\"0A27D3E6-A3FD-445B-B1A2-2E5D7037DA92\",\"Name\":\"Lead View 2\",\"Description\":\"Lead View Description 2\"}]}";
         try{
-            JSONObject leadRecordJSON = new JSONObject(LEAD_VIEW_JSON);
-            record.setCurrentPage(leadRecordJSON.getInt("currentPage"));
-            record.setRowPerPage(leadRecordJSON.getInt("rowPerPage"));
-            record.setTotalPage(leadRecordJSON.getInt("totalPage"));
-            JSONArray tmpArray = leadRecordJSON.getJSONArray("records");
-            Vector<JSONObject> recordVec = new Vector<>();
-            for(int i=0;i<tmpArray.length();i++){
-                recordVec.add(i, (JSONObject) tmpArray.get(i));
-            }
-            record.setRecordArray(recordVec);
+            new FetchJSONForFragment(ViewGroupFragment.this, getActivity().getApplicationContext(), bar).execute("http://192.168.1.151:8055/spartan/view.js?chosen_module=" + chosen_module);
+        }catch(Exception e){
+            e.printStackTrace();
         }
-        catch(JSONException e){
-            Log.e("convert view JSON : ", e.getMessage());
-        }
-        return LEAD_VIEW_JSON;
+
+        return rootView;
     }
 
     @Override
@@ -132,6 +120,7 @@ public class ViewGroupFragment extends Fragment{
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+
     }
 
 
@@ -142,6 +131,9 @@ public class ViewGroupFragment extends Fragment{
         if (mListener != null) {
             mListener.setTitle(chosen_module,getActivity());
         }
+
+
+
     }
 
     @Override

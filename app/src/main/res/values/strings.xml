@@ -2,11 +2,14 @@
     <string name="app_name">Spartan</string>
     <string name="edit_record">Edit record</string>
     <string name="add_record">Add record</string>
+    <string name="search_record">Search record</string>
     <string name="action_edit">Edit</string>
     <string name="action_add">Add</string>
     <string name="drawer_open">Spartan Menu</string>
     <string name="drawer_close">Spartan</string>
     <string name="login_title">Project Spartan</string>
     <string name="login_btn">Login</string>
-    <string name="profile_pic"></string>
+
+    <!-- JSON -->
+    <string name="login_uri">http://192.168.1.151:8055/spartan/login.js</string>
 </resources>

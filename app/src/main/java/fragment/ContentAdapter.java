@@ -87,6 +87,12 @@ public class ContentAdapter extends BaseAdapter {
         }
     }
 
+    public void setItemList(ArrayList<Object> field, HashMap data) {
+        this.field = field;
+        this.data = data;
+        setValue(field);
+    }
+
     private static class ViewHolderItem {
         TextView labelTextView;
         TextView valueEditView;

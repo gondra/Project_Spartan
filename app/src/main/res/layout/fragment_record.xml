@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/search_record"
+        android:hint="Record name"
+        android:layout_margin="16dp"
+        android:layout_alignParentTop="true" />
     <ListView
         android:id="@+id/recordListView"
         android:layout_width="match_parent"
@@ -11,5 +17,18 @@
         android:choiceMode="singleChoice"
         android:divider="@drawable/divider_line"
         android:footerDividersEnabled="true"
-        android:dividerHeight="1px" />
-</LinearLayout>
+        android:dividerHeight="1px"
+        android:layout_below="@+id/search_record" />
+
+    <ProgressBar
+        android:id="@+id/recordProgressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateDrawable="@drawable/progress"
+        android:indeterminate="false"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:visibility="invisible">
+    </ProgressBar>
+</RelativeLayout>
